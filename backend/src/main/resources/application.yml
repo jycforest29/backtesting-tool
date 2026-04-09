@@ -1,0 +1,11 @@
+server:
+  port: 8080
+
+logging:
+  level:
+    com.backtesting: DEBUG
+
+# Yahoo Finance uses public endpoints - no API key required.
+# If you switch to a paid data provider later, add the key here:
+# api:
+#   key: ${API_KEY:}
