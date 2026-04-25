@@ -1,11 +1,196 @@
+spring:
+  config:
+    import: optional:file:./.env[.properties]
+  # ========== H2 영속 저장소 ==========
+  # 파일 모드. 앱 재시작 시 OCO 포지션·전략 상태·감사로그 복원.
+  # H2 콘솔: http://localhost:8080/h2-console (로컬 전용, 운영 배포 시 비활성화 필요)
+  datasource:
+    url: jdbc:h2:file:${DB_PATH:${user.home}/.backtesting-tool-db;AUTO_SERVER=TRUE}
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update       # 운영: validate, 초기 구축 시점은 update
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.time_zone: Asia/Seoul
+    open-in-view: false      # OSIV 안티패턴 방지
+  h2:
+    console:
+      enabled: ${H2_CONSOLE:true}
+      path: /h2-console
+      settings:
+        web-allow-others: false
+  # ========== Redis — 시세/잔고/재무제표 캐시 + 분산 락 ==========
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+      password: ${REDIS_PASSWORD:}
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+  cache:
+    type: ${CACHE_TYPE:redis}   # redis (운영) / simple (로컬 테스트 Redis 없을 때)
+    redis:
+      time-to-live: 60000       # 기본 60초. 캐시별 TTL은 RedisCacheManager 빈에서 override.
+      cache-null-values: false
+  # ========== Kafka — 이벤트 스트림 ==========
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      group-id: backtesting-tool
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.backtesting.*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+  # Kafka가 없어도 앱이 기동하도록 AutoConfiguration 비활성화 토글
+  autoconfigure:
+    exclude: ${DISABLED_AUTOCONFIG:}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME:}
+    password: ${GMAIL_APP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        transport:
+          protocol: smtp
+
 server:
   port: 8080
+
+# ========== 인증 / CORS ==========
+# X-API-Key 헤더 기반. 평문 비교 (로컬 SECRET 관리 전제).
+# 운영에서는 secret manager 로 이관 권장. 미설정 시 WARN 후 open 모드로 폴백 (로컬 개발용).
+# 운영에서는 반드시 security.fail-on-missing-keys=true 로 오버라이드.
+security:
+  fail-on-missing-keys: ${SECURITY_FAIL_ON_MISSING_KEYS:false}
+  api-keys:
+    - key: ${ADMIN_API_KEY:}
+      principal: admin
+      roles: [ADMIN, TRADER, VIEWER]
+    - key: ${TRADER_API_KEY:}
+      principal: trader
+      roles: [TRADER, VIEWER]
+    - key: ${VIEWER_API_KEY:}
+      principal: viewer
+      roles: [VIEWER]
+    - key: ${SCRAPER_API_KEY:}
+      principal: prometheus-scraper
+      roles: [SCRAPER]
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: Content-Type,Authorization,X-API-Key,X-Idempotency-Key,X-Trace-Id,X-Deadline-Ms,X-Priority
+    exposed-headers: X-Trace-Id,X-Idempotent-Replay,Retry-After
+    max-age-seconds: 3600
+
+# ========== HTTP 레이트리밋 (per-principal / per-IP 토큰 버킷) ==========
+http-rate-limit:
+  enabled: ${HTTP_RATE_LIMIT_ENABLED:true}
+  # 기본 한도 (로그인/읽기 등)
+  default:
+    capacity: 120                 # 버스트 허용
+    refill-per-minute: 60         # 분당 60 = 평균 1 req/s
+  # 트레이딩 엔드포인트 (POST /api/trading/order, /api/trading/oco)
+  trading:
+    capacity: 20
+    refill-per-minute: 60         # 평균 1 req/s, 버스트 20
+
+alert:
+  recipient: ${ALERT_RECIPIENT:}
+  # 수급 스캐너 기준치 (사용자 확정)
+  scanner:
+    retail-sell-multiplier: 2.3      # 외국인+기관 순매수 >= 개인 순매도 × 이 값
+    prev-day-multiplier: 1.5         # 오늘 수급 >= 전일 수급 × 이 값
+    min-turnover-billion: 100        # 거래대금 최소치 (억원)
+    min-criteria-passed: 2           # 3개 기준 중 최소 통과 개수
+    top-n: 3                         # 메일 본문에 실을 종목 수
+    candidate-pool-size: 50
+  # 일일 실현손실 하드 스톱 (국내 매수 신규 주문 차단)
+  daily-loss:
+    limit-krw: ${DAILY_LOSS_LIMIT_KRW:100000}
+  # DART 공시 — 매일 08:10 KST 호재/악재 요약 메일
+  dart:
+    api-key: ${DART_API_KEY:}
+    max-items: 15                    # 메일에 실을 최대 공시 수
+  # 장중 거래량 급증 스캐너 (토스트 알림 → 웹 푸시)
+  volume-spike:
+    enabled: ${VOLUME_SPIKE_ENABLED:true}
+    scan-interval-seconds: 120       # 2분 주기
+    recent-minutes: 1                # 최근 N분 거래량
+    compare-minutes: 5               # 직전 M분 평균과 비교
+    threshold-percent: 300           # 기본 300% (3배)
+    cooldown-minutes: 10             # 같은 종목 재알림 최소 간격
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+  metrics:
+    tags:
+      application: backtesting-tool
 
 logging:
   level:
     com.backtesting: DEBUG
 
-# Yahoo Finance uses public endpoints - no API key required.
-# If you switch to a paid data provider later, add the key here:
-# api:
-#   key: ${API_KEY:}
+# 한국투자증권 OpenAPI — 값은 전부 OS 환경변수 (HANTOO_*)에서 주입
+kis:
+  app-key: ${HANTOO_API_KEY:}
+  app-secret: ${HANTOO_API_SECRET:}
+  account-number: ${HANTOO_ACCOUNT:}
+  account-product: ${HANTOO_ACCOUNT_PRODUCT:01}
+  paper-trading: ${HANTOO_PAPER_TRADING:false}
+  base-url-real: https://openapi.koreainvestment.com:9443
+  base-url-paper: https://openapivts.koreainvestment.com:29443
+  ws-url-real: ws://ops.koreainvestment.com:21000
+  ws-url-paper: ws://ops.koreainvestment.com:31000
+  # 초당 호출 한도: 신규 3일간 3 → 실전 18 / 모의 1. 환경변수로 오버라이드 가능.
+  requests-per-second: ${HANTOO_RATE_PER_SEC:3}
+  token-requests-per-second: 1
+  max-wait-ms: 2000
+  token-cache-path: ${HANTOO_TOKEN_CACHE:${user.home}/.kis-token.json}
+
+# ELW 내재변동성 스큐 스캐너 (3번 전략)
+# KIS ELW 엔드포인트는 환경별로 다를 수 있어 전부 env 로 주입. enabled=false (기본) 시 provider 미구성 상태.
+elw:
+  enabled: ${ELW_ENABLED:false}
+  chain-url: ${ELW_CHAIN_URL:}       # 예: https://openapi.koreainvestment.com:9443/uapi/elw/v1/quotations/...
+  chain-tr-id: ${ELW_CHAIN_TR_ID:}   # 예: FHPIF05030000
+  risk-free-rate: 0.035              # CD91 기준
+  dividend-yield: 0.02               # KOSPI200 기초 기본
+  concurrency: 8                      # IV 병렬 워커 수
+  iv-timeout-ms: 5000
+
+# DART OpenAPI (금감원 전자공시) — 팩터 전략(계층 B) 재무제표 조회용
+dart:
+  api-key: ${DART_OPEN_API_KEY:}
+  base-url: https://opendart.fss.or.kr/api
+  requests-per-second: 8              # DART는 공식 10rps 여유분 고려
+  # 재무제표 캐시 TTL (시간). 24시간 = 하루 1회 재조회.
+  financial-cache-hours: 24
+  # 유니버스 내 분기당 공시 일수 고려해 기본 연간 보고서(11011) 기준.
+  default-report-code: 11011

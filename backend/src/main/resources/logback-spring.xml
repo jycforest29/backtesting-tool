@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    로깅 설정.
+
+    프로파일:
+      default / dev / test  → 콘솔 평문 (인간 가독성 우선)
+      prod / staging        → 콘솔 JSON (Loki / ES / Datadog 인덱싱)
+
+    필드:
+      timestamp, level, thread, logger, message, stack_trace, mdc.{traceId, principal, orderRecordId}
+      application = backtesting-tool  (배포 식별)
+
+    커스터마이즈:
+      LOG_LEVEL_COM_BACKTESTING 환경변수로 우리 패키지 로그 레벨 조정 (기본 DEBUG).
+-->
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <property name="APP" value="backtesting-tool"/>
+    <property name="LOG_LEVEL_COM_BACKTESTING" value="${LOG_LEVEL_COM_BACKTESTING:-DEBUG}"/>
+
+    <!-- 평문 콘솔 (로컬/테스트) -->
+    <appender name="PLAIN" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- traceId 가 MDC 에 있으면 pipe 안쪽에 표시되고, 없으면 빈칸. -->
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %X{traceId:-} %X{principal:-} %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 구조화 JSON 콘솔 (prod) -->
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"application":"${APP}"}</customFields>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>principal</includeMdcKeyName>
+            <includeMdcKeyName>orderRecordId</includeMdcKeyName>
+            <!-- 메시지 필드명을 'message' 로 강제 (일부 파이프라인은 'msg' 를 예약). -->
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <message>message</message>
+                <thread>thread</thread>
+                <logger>logger</logger>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+        </encoder>
+    </appender>
+
+    <!-- 프로파일 별 라우팅. -->
+    <springProfile name="prod,staging">
+        <root level="INFO">
+            <appender-ref ref="JSON"/>
+        </root>
+        <logger name="com.backtesting" level="${LOG_LEVEL_COM_BACKTESTING}"/>
+    </springProfile>
+
+    <springProfile name="!prod &amp; !staging">
+        <root level="INFO">
+            <appender-ref ref="PLAIN"/>
+        </root>
+        <logger name="com.backtesting" level="${LOG_LEVEL_COM_BACKTESTING}"/>
+        <!-- Spring 내부 로그는 억제 (개발 중 시끄러움 줄임). -->
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="INFO"/>
+    </springProfile>
+
+</configuration>
