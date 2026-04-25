@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>백테스팅 · 자동매매 툴 프로젝트 개요</title>
+<style>
+  @page {
+    size: A4;
+    margin: 22mm 20mm 22mm 20mm;
+    @bottom-center {
+      content: counter(page) " / " counter(pages);
+      font-family: 'Noto Sans CJK KR', sans-serif;
+      font-size: 9pt;
+      color: #9ca3af;
+    }
+  }
+  html { font-family: 'Noto Sans CJK KR', 'Nanum Gothic', sans-serif; font-size: 10.5pt; color: #1f2937; line-height: 1.55; }
+  body { margin: 0; }
+  h1, h2, h3, h4 { font-family: 'NanumSquare', 'Noto Sans CJK KR', sans-serif; color: #111827; font-weight: 700; }
+  h1 { font-size: 26pt; letter-spacing: -0.5pt; margin: 0 0 6pt; }
+  h2 { font-size: 16pt; margin: 22pt 0 6pt; padding-bottom: 4pt; border-bottom: 2pt solid #1e40af; color: #1e40af; page-break-after: avoid; }
+  h3 { font-size: 12pt; margin: 14pt 0 4pt; color: #1f2937; page-break-after: avoid; }
+  h4 { font-size: 10.5pt; margin: 10pt 0 2pt; color: #374151; }
+  p { margin: 4pt 0; }
+  code, pre { font-family: 'Nanum Gothic Coding', 'Courier New', monospace; }
+  code { background: #f3f4f6; padding: 1pt 4pt; border-radius: 3pt; font-size: 9pt; }
+  pre { background: #f8f9fa; border-left: 3pt solid #3b82f6; padding: 8pt 10pt; border-radius: 4pt; font-size: 9pt; line-height: 1.4; overflow-x: auto; page-break-inside: avoid; }
+  ul, ol { margin: 4pt 0 6pt 18pt; padding: 0; }
+  li { margin: 2pt 0; }
+  table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; font-size: 9.5pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #e5e7eb; padding: 5pt 7pt; text-align: left; vertical-align: top; }
+  th { background: #f3f4f6; font-weight: 600; color: #374151; }
+  tr:nth-child(even) td { background: #fafbfc; }
+
+  .cover { page-break-after: always; min-height: 240mm; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+  .cover-title { font-size: 32pt; font-weight: 800; color: #1e40af; letter-spacing: -1pt; margin-bottom: 10pt; }
+  .cover-sub { font-size: 14pt; color: #4b5563; margin-bottom: 40pt; line-height: 1.5; }
+  .cover-meta { font-size: 10pt; color: #6b7280; margin-top: 60pt; line-height: 1.8; }
+  .cover-tag { display: inline-block; background: #dbeafe; color: #1e40af; font-size: 10pt; padding: 3pt 10pt; border-radius: 12pt; margin: 0 3pt; }
+
+  .callout { background: #fefce8; border-left: 3pt solid #eab308; padding: 8pt 12pt; margin: 8pt 0; border-radius: 4pt; font-size: 9.5pt; }
+  .callout-danger { background: #fef2f2; border-left-color: #ef4444; }
+  .callout-info { background: #eff6ff; border-left-color: #3b82f6; }
+  .callout strong { color: #78350f; }
+  .callout-danger strong { color: #991b1b; }
+  .callout-info strong { color: #1e40af; }
+
+  .two-col { display: flex; gap: 12pt; margin: 6pt 0; }
+  .two-col > div { flex: 1; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4pt; padding: 8pt 10pt; }
+  .two-col h4 { margin-top: 0; color: #1e40af; }
+
+  .section-num { color: #9ca3af; font-weight: 400; margin-right: 6pt; }
+  .muted { color: #6b7280; font-size: 9.5pt; }
+  .pill { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 1pt 6pt; border-radius: 8pt; font-size: 8.5pt; font-weight: 600; margin-right: 3pt; }
+
+  .toc { margin: 20pt 0 30pt; }
+  .toc-item { display: flex; justify-content: space-between; padding: 4pt 0; border-bottom: 1px dotted #d1d5db; }
+  .toc-item span:first-child { color: #1f2937; }
+  .toc-item .toc-page { color: #6b7280; }
+</style>
+</head>
+<body>
+
+<!-- =================== 표지 =================== -->
+<div class="cover">
+  <div class="cover-tag">Project Report</div>
+  <div style="height: 20pt;"></div>
+  <div class="cover-title">개인 백테스팅 · 자동매매 툴</div>
+  <div class="cover-sub">한국투자증권 OpenAPI 기반<br>포트폴리오 백테스트 · 투자자 동향 · 실시간 자동매매</div>
+  <div style="height: 30pt;"></div>
+  <div class="muted">
+    <span class="cover-tag">Spring Boot</span>
+    <span class="cover-tag">React</span>
+    <span class="cover-tag">KIS OpenAPI</span>
+    <span class="cover-tag">Quant</span>
+  </div>
+  <div class="cover-meta">
+    2026년 4월 19일<br>
+    juyeon<br>
+    jycforest29.dev@gmail.com
+  </div>
+</div>
+
+<!-- =================== 목차 =================== -->
+<h2>목차</h2>
+<div class="toc">
+  <div class="toc-item"><span><span class="section-num">1.</span> 개요</span><span class="toc-page">3</span></div>
+  <div class="toc-item"><span><span class="section-num">2.</span> 시스템 아키텍처</span><span class="toc-page">4</span></div>
+  <div class="toc-item"><span><span class="section-num">3.</span> 한국투자증권 OpenAPI 활용 상세</span><span class="toc-page">5</span></div>
+  <div class="toc-item"><span><span class="section-num">4.</span> 실제 투자에서의 활용 방안</span><span class="toc-page">8</span></div>
+  <div class="toc-item"><span><span class="section-num">5.</span> 퀀트 툴로의 발전 로드맵</span><span class="toc-page">10</span></div>
+  <div class="toc-item"><span><span class="section-num">6.</span> 현재 제약사항 및 위험 요인</span><span class="toc-page">13</span></div>
+</div>
+
+<!-- =================== 1. 개요 =================== -->
+<h2><span class="section-num">1.</span> 개요</h2>
+
+<h3>무엇을 만들었는가</h3>
+<p>주식 투자 전략을 <strong>사전에 백테스트</strong>하고, 그 결과를 바탕으로 <strong>실제 자동매매까지 연결</strong>할 수 있는 개인용 Web 툴입니다. 모든 시세·주문은 한국투자증권 OpenAPI를 통해 단일 소스로 처리하므로, 과거 데이터와 실거래 주문이 같은 계좌·같은 데이터 소스를 공유합니다.</p>
+
+<h3>핵심 기능 6가지</h3>
+<table>
+  <thead><tr><th style="width:22%">탭</th><th>역할</th></tr></thead>
+  <tbody>
+    <tr><td>포트폴리오 백테스트</td><td>다중 자산 비중·리밸런싱·적립식(DCA)·세금/수수료 반영 후 과거 수익률 시뮬레이션. 벤치마크(SPY, 예금 3.5% 등) 비교</td></tr>
+    <tr><td>단일 종목 백테스트</td><td>"X년 Y월에 샀다면 지금 얼마"식 간단 수익률 계산</td></tr>
+    <tr><td>투자자별 매매동향</td><td>개인/외국인/기관 일별 순매수 + 주가 괴리 신호 (매집·분산 감지)</td></tr>
+    <tr><td>자동매매 (Lv1)</td><td>실시간 감시종목 가격, 지정가/시장가 수동 주문, 잔고·미체결 조회, 예상 수수료·세금 프리뷰</td></tr>
+    <tr><td>위기 시나리오</td><td>COVID/GFC/금리인상 등 6개 프리셋 + 커스텀. 자산군별 β 기반 손실 추정</td></tr>
+    <tr><td>감사 로그</td><td>모든 API 호출 기록 + 필터링/통계. 실계좌 주문 추적 용도</td></tr>
+  </tbody>
+</table>
+
+<h3>지원 시장</h3>
+<p>한국(KOSPI/KOSDAQ) · 미국(NAS/NYSE/AMEX) · 일본(TSE). 2000년대 이후 일봉 기준. 파생·코인·환율은 범위 밖.</p>
+
+<div class="callout callout-info">
+<strong>왜 KIS 단일화?</strong> 기존에 Yahoo Finance로 시작했으나 ① 2024년 이후 <code>401 Unauthorized</code> 빈발 ② 비공식 API라 ToS 회색지대 ③ 시세만 제공되어 실거래로 연결 불가. KIS로 통합하면 백테스트·시세·주문·잔고가 한 계좌 안에서 일관되게 돌아감.
+</div>
+
+<!-- =================== 2. 아키텍처 =================== -->
+<h2><span class="section-num">2.</span> 시스템 아키텍처</h2>
+
+<h3>전체 구조</h3>
+<pre>
+┌─────────────────────────────┐
+│  React 18 + Vite (5173)     │  ← 사용자
+│  · 탭 UI (포트폴리오/자동매매 등)
+│  · Recharts 시각화
+│  · STOMP over SockJS 실시간
+│  · 글로벌 Toast (rate limit 알림)
+└──────────────┬──────────────┘
+               │ /api, /ws (Vite proxy)
+┌──────────────▼──────────────┐
+│  Spring Boot 3.2 (8080)     │
+│  Controllers:               │
+│   · BacktestController      │
+│   · AutoTradingController   │
+│   · KisExceptionHandler     │
+│  Services:                  │
+│   · BacktestService         │
+│   · PortfolioService        │
+│   · StressTestService       │
+│   · AutoTradingService      │
+│   · AuditLogService         │
+│   · StockMasterService      │
+│  KIS 레이어:                │
+│   · KisAuthService   (토큰)  │
+│   · KisMarketDataService    │
+│   · KisTradingService       │
+│   · KisHttpCaller           │
+│   · KisRateLimiter          │
+└──────────────┬──────────────┘
+               │ HTTPS (OAuth2 Bearer)
+┌──────────────▼──────────────┐
+│  한국투자증권 OpenAPI        │
+│  실전: :9443 / 모의: :29443  │
+└─────────────────────────────┘
+</pre>
+
+<h3>주요 의존 라이브러리</h3>
+<table>
+  <thead><tr><th>Layer</th><th>스택</th></tr></thead>
+  <tbody>
+    <tr><td>백엔드 런타임</td><td>Java 21, Spring Boot 3.2 (starter-web, websocket), Lombok, Jackson</td></tr>
+    <tr><td>프론트</td><td>React 18, Vite 5, Recharts 2, @stomp/stompjs, sockjs-client</td></tr>
+    <tr><td>외부 I/O</td><td>Java HttpClient (표준), JSON 응답 파싱만 Jackson</td></tr>
+  </tbody>
+</table>
+
+<h3>데이터 흐름 (자동매매 탭 예시)</h3>
+<ol>
+  <li>사용자가 종목 "삼성전자" 입력 → 프론트 <code>GET /api/search?q=삼성&amp;market=KR_STOCK</code></li>
+  <li>백엔드 <code>StockMasterService</code>에서 이름 부분일치 → 결과 반환</li>
+  <li>사용자가 감시종목 추가 → <code>POST /api/trading/watchlist</code></li>
+  <li><code>AutoTradingService</code>가 30초 간격으로 KIS 시세 폴링</li>
+  <li>받은 가격을 <code>SimpMessagingTemplate</code>로 <code>/topic/quotes</code>에 브로드캐스트</li>
+  <li>프론트 STOMP 구독자가 실시간으로 가격 업데이트 + 플래시 효과</li>
+</ol>
+
+<!-- =================== 3. KIS 활용 상세 =================== -->
+<h2><span class="section-num">3.</span> 한국투자증권 OpenAPI 활용 상세</h2>
+
+<h3>3.1 인증 (OAuth2 + 24시간 토큰)</h3>
+<p><code>KisAuthService</code>가 <code>/oauth2/tokenP</code>로 access_token 발급·캐싱. 발급 한도가 빡빡(일일 약 10회, 초당 1건)하므로 <strong>파일 영속화</strong>(<code>~/.kis-token.json</code>)로 서버 재시작 후에도 유효시간 내면 재발급 없이 재사용.</p>
+
+<pre>
+{ "token": "...", "expiresAt": 1745120334304,
+  "paper": false, "appKeyHash": "a3f2..." }
+</pre>
+
+<div class="callout">
+<strong>주의:</strong> 실전 키와 모의투자 키는 서로 다른 앱 등록 필요. <code>paper_trading</code> 플래그가 잘못 설정되면 "해당 환경 TR_ID 없음" 에러로 모든 호출 실패.
+</div>
+
+<h3>3.2 시세·과거 데이터</h3>
+<table>
+  <thead><tr><th>용도</th><th>엔드포인트</th><th>TR_ID</th></tr></thead>
+  <tbody>
+    <tr><td>국내 현재가</td><td><code>/domestic-stock/v1/quotations/inquire-price</code></td><td>FHKST01010100</td></tr>
+    <tr><td>국내 일봉 (백테스트)</td><td><code>/domestic-stock/v1/quotations/inquire-daily-itemchartprice</code></td><td>FHKST03010100</td></tr>
+    <tr><td>해외 현재가</td><td><code>/overseas-price/v1/quotations/price</code></td><td>HHDFS00000300</td></tr>
+    <tr><td>해외 일봉</td><td><code>/overseas-price/v1/quotations/dailyprice</code></td><td>HHDFS76240000</td></tr>
+  </tbody>
+</table>
+<p>한 번 호출에 국내는 최대 100일, 해외는 100일 응답이라 페이지네이션으로 과거로 소급. <code>KisMarketDataService.getChartData()</code>가 커서를 뒤로 밀면서 수집.</p>
+
+<h3>3.3 투자자별 매매동향</h3>
+<p><code>FHKST01010900</code>으로 종목별 일별 개인/외국인/기관 순매수 수량·금액 조회. 매집/분산 신호 해석 로직:</p>
+<ul>
+  <li><span class="pill">BULLISH</span> 외국인+기관 순매수 &gt; 0인데 주가 횡보/하락 → 매집 의심</li>
+  <li><span class="pill">BEARISH</span> 외국인+기관 순매도인데 주가 상승 → 분산(분할매도) 의심</li>
+  <li><span class="pill">NEUTRAL</span> 수급과 주가 방향 일치</li>
+</ul>
+
+<h3>3.4 자동매매 (주문·잔고)</h3>
+<p>거래소별로 TR_ID가 다르며 실전/모의 접두 다른 점이 함정 포인트:</p>
+<table>
+  <thead><tr><th>시장·방향</th><th>실전 TR_ID</th><th>모의 TR_ID</th></tr></thead>
+  <tbody>
+    <tr><td>국내 매수 / 매도</td><td>TTTC0012U / TTTC0011U</td><td>VTTC0012U / VTTC0011U</td></tr>
+    <tr><td>미국 매수 / 매도</td><td>TTTT1002U / TTTT1006U</td><td>VTTT1002U / <strong>VTTT1001U</strong></td></tr>
+    <tr><td>일본 매수 / 매도</td><td>TTTS0308U / TTTS0307U</td><td>VTTS0308U / VTTS0307U</td></tr>
+    <tr><td>국내 잔고</td><td>TTTC8434R</td><td>VTTC8434R</td></tr>
+    <tr><td>해외 잔고</td><td>TTTS3012R</td><td>VTTS3012R</td></tr>
+    <tr><td>국내 미체결</td><td>TTTC0084R</td><td>모의 미지원</td></tr>
+  </tbody>
+</table>
+<p>POST 주문 시 <code>/uapi/hashkey</code>로 body 해시 선발급 후 <code>hashkey</code> 헤더에 첨부. <code>KisAuthService.hashkey()</code>가 담당.</p>
+
+<h3>3.5 Rate Limiter (필수 인프라)</h3>
+<p>KIS는 초당 호출을 엄격히 제한:</p>
+<ul>
+  <li>실전: 18 req/sec (계좌 단위), <strong>신규 가입 후 3일간은 3 req/sec</strong></li>
+  <li>모의: 1 req/sec</li>
+  <li>토큰 발급: 1 req/sec (별도 버킷)</li>
+  <li>초과 시 <code>EGW00201</code> 응답 → HTTP 500으로 내려옴</li>
+</ul>
+<p><code>KisRateLimiter</code>가 슬라이딩 윈도우로 호출을 자체 억제. 한도 초과 시 최대 2초 대기, 그래도 못 뚫으면 <code>KisRateLimitedException</code> → <code>KisExceptionHandler</code>가 HTTP 429 + <code>Retry-After</code> 헤더로 변환 → 프론트 Toast가 자동 감지해 "X초 후 재시도" 배너 표시.</p>
+
+<h3>3.6 보안/환경변수 설계</h3>
+<p>키는 <strong>절대 파일 커밋 금지</strong>. <code>application.yml</code>은 <code>${HANTOO_API_KEY:}</code> 형태로만 참조하고, 실제 값은 <code>~/.bashrc</code>의 <code>export</code>로 쉘 환경변수에 주입. <code>.gitignore</code>에 <code>.env</code> 패턴 추가 완료.</p>
+
+<!-- =================== 4. 실제 활용 =================== -->
+<h2><span class="section-num">4.</span> 실제 투자에서의 활용 방안</h2>
+
+<h3>4.1 전략 검증 파이프라인</h3>
+<ol>
+  <li><strong>가설 설정:</strong> "KOSPI 대형주 + 미국 S&amp;P500 ETF 60:40, 분기 리밸런싱" 같은 전략을 문장으로 정의</li>
+  <li><strong>포트폴리오 백테스트 탭</strong>에서 직접 입력 → 2010~현재 수익률, Sharpe, MDD, CAGR 확인</li>
+  <li>벤치마크 켜고 SPY/KODEX200/예금 대비 초과수익 확인</li>
+  <li><strong>위기 시나리오 탭</strong>에서 GFC·COVID·금리인상 시 손실률 테스트</li>
+  <li>Sharpe &gt; 0.7 &amp; MDD &lt; -30% 견딜 수 있으면 실행 단계</li>
+</ol>
+
+<h3>4.2 실행 단계</h3>
+<ol>
+  <li><strong>자동매매 탭</strong>에서 대상 종목 감시 등록 → 실시간 가격 모니터링</li>
+  <li>리밸런싱 시점이 오면 수량 계산 후 지정가 주문</li>
+  <li>예상 비용 프리뷰로 수수료·세금 확인 (국내 매도 0.18%, 미국 0.25%)</li>
+  <li>주문 후 "미체결 주문" 패널에서 체결 여부 확인, 미체결은 한투 MTS에서 취소</li>
+</ol>
+
+<h3>4.3 투자자 동향 활용</h3>
+<p>월간·분기 리뷰 시 "투자자별 매매동향" 탭에서 보유 종목의 외국인·기관 동향 확인. BEARISH 신호(지속 순매도인데 주가 버티는 중)가 나오면 비중 축소 검토. BULLISH 신호(매집인데 주가 횡보) 나오면 분할매수 고려.</p>
+
+<h3>4.4 세금·수수료 최적화</h3>
+<p>주문 프리뷰가 매도 거래세를 실시간 보여주므로, 단타 빈도를 낮추는 것이 눈에 보이는 비용 절감. 또한 해외주식 양도세(22%, 연 250만원 공제)는 연간 실현손실과 상계 가능 → 연말에 손절 후 재매수하는 세금 최적화 전략(tax-loss harvesting)을 툴에서 계획 가능.</p>
+
+<h3>4.5 일일 운용 루틴 예시</h3>
+<table>
+  <thead><tr><th>시간</th><th>작업</th><th>도구</th></tr></thead>
+  <tbody>
+    <tr><td>장전 (08:40)</td><td>전일 체결·미체결 확인, 오늘 주문 계획 수립</td><td>감사 로그, 잔고</td></tr>
+    <tr><td>장중 (09:00~15:30)</td><td>감시종목 실시간 가격 체크, 조건 충족 시 수동 주문</td><td>자동매매 탭</td></tr>
+    <tr><td>장마감 후</td><td>투자자 동향 업데이트, 주 1회 백테스트 재검증</td><td>투자자별 매매동향, 포트폴리오 백테스트</td></tr>
+    <tr><td>월말</td><td>리밸런싱 계산 → 실행, 위기 시나리오 재실행</td><td>포트폴리오, 위기 시나리오</td></tr>
+  </tbody>
+</table>
+
+<!-- =================== 5. 퀀트 발전 로드맵 =================== -->
+<h2><span class="section-num">5.</span> 퀀트 툴로의 발전 로드맵</h2>
+
+<p>현재는 "백테스트 + 수동 실행"에 머물러 있음. 본격적인 퀀트 플랫폼으로 확장하려면 3단계로 접근 권장.</p>
+
+<h3>Phase 1 · 전략 엔진 도입 (1~2개월)</h3>
+
+<h4>(a) 전략 추상화</h4>
+<p>현재 백테스트는 "비중 × 리밸런싱"만 지원. 다음을 추가:</p>
+<ul>
+  <li><strong>Signal</strong>: 가격·지표로부터 "매수/매도/관망" 신호 생성 (이동평균 교차, RSI, 모멘텀 등)</li>
+  <li><strong>Rule</strong>: Signal 조합 + 포지션 사이징 (Kelly, 변동성 타깃 등)</li>
+  <li><strong>Execution</strong>: Rule → 실제 주문(수동 승인 or 자동)</li>
+</ul>
+<pre>
+interface Strategy {
+  Signal evaluate(MarketContext ctx);
+}
+class MovingAverageCross implements Strategy { ... }
+class RSIMeanReversion implements Strategy { ... }
+</pre>
+
+<h4>(b) 팩터 라이브러리</h4>
+<p>밸류(PBR·PER), 모멘텀(3개월 수익률), 퀄리티(ROE), 사이즈(시가총액) 팩터를 KIS의 종목 재무 API(<code>국내주식 재무비율</code>, <code>국내주식 수익성비율</code>)로 수집 → 스코어링.</p>
+
+<h4>(c) 벡터화 백테스트 엔진</h4>
+<p>현재는 Java 루프 기반이라 다종목·다기간 시 느림. Python으로 별도 백테스트 워커를 두고 (<code>pandas</code>, <code>numpy</code>) 일봉 데이터를 SQLite/Parquet에 캐시 → REST로 Java 서버와 통신.</p>
+
+<h3>Phase 2 · 실시간 자동화 (2~3개월)</h3>
+
+<h4>(a) KIS WebSocket 직접 연동</h4>
+<p>현재는 30초 폴링. 진짜 실시간 체결가는 <code>/oauth2/Approval</code>로 approval_key 발급 후 <code>ws://...</code> WebSocket 연결. 41개 종목까지 동시 구독 가능. <code>국내주식 실시간체결가</code> 등을 수신해 1틱 단위 반응.</p>
+
+<h4>(b) 조건부 주문 엔진</h4>
+<p>현재는 "사용자가 매수 버튼 누름". 확장:</p>
+<ul>
+  <li>"삼성전자 70,000원 이하면 10주 매수" — 가격 트리거</li>
+  <li>"RSI &lt; 30 도달하면 분할매수 1차" — 지표 트리거</li>
+  <li>"동시 5종목 체결 조건 만족 시 바스켓 주문" — 포트폴리오 트리거</li>
+</ul>
+<p>백엔드에 <code>ConditionalOrderService</code>(Redis·DB 저장) + <code>OrderTriggerScheduler</code>(매분 체크) 추가.</p>
+
+<h4>(c) 실거래 계정 분리·운영</h4>
+<p>전략별로 KIS 서브계좌 분리 → 성과·리스크 격리. 앱키도 전략별로 별도 발급해 Rate Limit 병목 회피(키 1개당 18/sec 독립).</p>
+
+<h3>Phase 3 · 본격 퀀트 플랫폼 (3~6개월)</h3>
+
+<h4>(a) 데이터 레이크</h4>
+<p>현재는 요청마다 KIS API 호출. 확장:</p>
+<ul>
+  <li>일봉/재무/지표를 TimescaleDB 또는 Parquet에 적재</li>
+  <li>야간 배치로 증분 수집 (rate limit 위반 없이 분산)</li>
+  <li>백테스트는 DB만 쿼리 → 10~100배 빠름</li>
+</ul>
+
+<h4>(b) 리스크 관리</h4>
+<ul>
+  <li>VaR·CVaR (파라메트릭/몬테카를로)</li>
+  <li>팩터 노출도 분석 (섹터·스타일 기여도)</li>
+  <li>Kelly 기준 최대 포지션 비중 자동 산정</li>
+  <li>긴급 중단 장치(Kill Switch): 일일 손실률 초과 시 신규 주문 차단</li>
+</ul>
+
+<h4>(c) 전략 대시보드</h4>
+<p>현재는 수동 확인. 확장:</p>
+<ul>
+  <li>라이브 P&amp;L (전략별 실시간 손익)</li>
+  <li>슬리피지 분석 (예상가 vs 체결가 차이)</li>
+  <li>트랜잭션 비용 분석 (TCA)</li>
+  <li>알림 (Slack/Discord 웹훅으로 체결·리스크 이벤트 푸시)</li>
+</ul>
+
+<h4>(d) 바스켓·페어 트레이딩</h4>
+<p>KR-US 종목 간 상관 분석 → 페어 트레이딩(코스피200 ↔ S&amp;P500 ETF 스프레드). 현재 구조에서 자연스럽게 확장 가능한 영역.</p>
+
+<h4>(e) 머신러닝·대체 데이터</h4>
+<p>기본기 다진 후 선택적으로:</p>
+<ul>
+  <li>LSTM/Transformer 기반 단기 방향성 예측 (Feature: OHLCV + 투자자 동향 + 뉴스 감성)</li>
+  <li>KIS <code>해외뉴스종합</code>, <code>종합 시황 공시</code> 엔드포인트 + 공개 뉴스 API → NLP 감성 분석</li>
+</ul>
+
+<h3>우선순위 제안</h3>
+<table>
+  <thead><tr><th>순서</th><th>작업</th><th>가성비</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>일봉 DB 캐시 (Phase 3a)</td><td>★★★★★ (즉시 10배 빠른 백테스트)</td></tr>
+    <tr><td>2</td><td>조건부 주문 (Phase 2b)</td><td>★★★★★ (실운용의 핵심)</td></tr>
+    <tr><td>3</td><td>전략 추상화 + Signal/Rule (Phase 1a)</td><td>★★★★ (확장성 기반)</td></tr>
+    <tr><td>4</td><td>KIS WebSocket 실시간 (Phase 2a)</td><td>★★★ (단타 아니면 오버킬)</td></tr>
+    <tr><td>5</td><td>팩터 라이브러리 (Phase 1b)</td><td>★★★ (전략 다양화)</td></tr>
+    <tr><td>6</td><td>Kill Switch (Phase 3b)</td><td>★★★★★ (자동매매 필수)</td></tr>
+  </tbody>
+</table>
+
+<!-- =================== 6. 제약/위험 =================== -->
+<h2><span class="section-num">6.</span> 현재 제약사항 및 위험 요인</h2>
+
+<div class="callout callout-danger">
+<strong>자동매매 Disclaimer:</strong> 이 툴은 개인 학습·연구용. 주문 오류·장애로 인한 금전 손실은 전적으로 사용자 책임. 특히 실전 모드(<code>HANTOO_PAPER_TRADING=false</code>)에서는 모든 매매가 실계좌에 즉시 반영됨.
+</div>
+
+<h3>6.1 데이터 한계</h3>
+<ul>
+  <li><strong>장기 히스토리:</strong> KIS는 해외 2000년대 이후, 국내도 비슷. 1980~1990년대 장기 백테스트는 불가</li>
+  <li><strong>수정주가 처리:</strong> <code>FID_ORG_ADJ_PRC</code> 플래그는 설정했으나 기업공개·분할·배당 처리가 완벽한지는 검증 필요</li>
+  <li><strong>거래량·호가 depth:</strong> 현재는 종가만 사용 → 일중 슬리피지 추정 불가</li>
+</ul>
+
+<h3>6.2 API 한계</h3>
+<ul>
+  <li><strong>Rate Limit:</strong> 실전 18/sec · 모의 1/sec. 신규 3일은 3/sec로 더 빡빡. 과도한 UI 리프레시 시 EGW00201</li>
+  <li><strong>토큰 발급 한도:</strong> 일일 약 10회 → 재시작 잦으면 고갈 위험. 파일 영속화로 완화했지만 완전 해결은 아님</li>
+  <li><strong>모의투자 미지원 엔드포인트:</strong> 미체결 조회·일부 해외 주문 관련 API. 모의 환경에서는 빈 결과 반환</li>
+  <li><strong>실시간 시세:</strong> 미국은 무료 신청, 일본은 유료 별도 신청 필요</li>
+</ul>
+
+<h3>6.3 법적·규제 측면</h3>
+<ul>
+  <li>KIS 공식 API라 ToS 명확 — 개인 투자자 사용 허용</li>
+  <li>자동매매 봇을 <strong>타인에게 제공</strong>하거나 수익을 공유받는 순간 투자일임업·자문업 라이선스 이슈 발생 가능 (자본시장법)</li>
+  <li>세무 신고 의무: 해외주식 양도세(5/1~5/31), 배당소득 종합과세(2천만원 초과)</li>
+</ul>
+
+<h3>6.4 엔지니어링 한계</h3>
+<ul>
+  <li>단일 프로세스 · 메모리 저장 → 서버 재시작 시 감시종목·감사로그 소실 (토큰만 영속)</li>
+  <li>테스트 코드 없음 → 리팩터링 시 회귀 위험</li>
+  <li>동시 유저 고려 없음 (개인 로컬 가정)</li>
+</ul>
+
+<h3>6.5 권장 안전장치 (지금 당장)</h3>
+<ol>
+  <li>실전 환경에서는 항상 <strong>지정가 + 소량</strong>부터 테스트</li>
+  <li>KIS apiportal에서 <strong>IP 화이트리스트</strong> 등록 (키 유출 시 피해 최소화)</li>
+  <li><code>~/.kis-token.json</code>은 파일 권한 <code>600</code>으로 자동 저장됨 — 공유 PC 사용 금지</li>
+  <li>매일 장마감 후 감사 로그 확인</li>
+</ol>
+
+<div style="margin-top: 30pt; padding-top: 12pt; border-top: 1pt solid #d1d5db; text-align: center; color: #9ca3af; font-size: 9pt;">
+  Generated 2026-04-19 · Backtesting &amp; Trading Tool
+</div>
+
+</body>
+</html>
