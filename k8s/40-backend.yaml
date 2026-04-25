@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: backtesting
+spec:
+  selector: { app: backend }
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+---
+# 앱은 KIS WebSocket을 장기간 유지하고 H2 파일 DB를 씀 → 다중 복제 부적합.
+# 단일 인스턴스 운영 (Deployment vs StatefulSet: H2 파일 보존에 PVC 필요해서 StatefulSet).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: backend
+  namespace: backtesting
+spec:
+  serviceName: backend
+  replicas: 1
+  selector:
+    matchLabels: { app: backend }
+  template:
+    metadata:
+      labels: { app: backend }
+    spec:
+      containers:
+        - name: backend
+          image: backtesting-tool-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - secretRef:
+                name: backtesting-secrets
+            - configMapRef:
+                name: backtesting-config
+          env:
+            - name: JAVA_OPTS
+              value: "-XX:MaxRAMPercentage=75 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
+          resources:
+            requests: { memory: "512Mi", cpu: "200m" }
+            limits:   { memory: "1.5Gi", cpu: "1500m" }
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            failureThreshold: 30
+            periodSeconds: 10
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests: { storage: 5Gi }

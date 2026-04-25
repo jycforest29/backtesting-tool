@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backtesting
+  labels:
+    app.kubernetes.io/part-of: backtesting-tool
