@@ -16,7 +16,9 @@ services:
   redis:
     image: redis:7-alpine
     container_name: bt-redis
-    ports: ["6379:6379"]
+    # 외부 노출 금지. backend 는 docker 네트워크의 hostname=redis 로 접근.
+    # 로컬 점검은 SSH 터널: ssh -L 6379:localhost:6379 ubuntu@<host>
+    ports: ["127.0.0.1:6379:6379"]
     volumes: ["redis-data:/data"]
     command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
     healthcheck:
@@ -27,7 +29,8 @@ services:
   kafka:
     image: apache/kafka:3.7.1
     container_name: bt-kafka
-    ports: ["9092:9092"]
+    # 외부 노출 금지. backend 는 KAFKA_BOOTSTRAP=kafka:9092 로 접근.
+    ports: ["127.0.0.1:9092:9092"]
     environment:
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=controller,broker
@@ -54,7 +57,8 @@ services:
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: bt-kafka-ui
-    ports: ["9000:8080"]
+    # 외부 노출 금지. SSH 터널로 접근: ssh -L 9000:localhost:9000 ubuntu@<host>
+    ports: ["127.0.0.1:9000:8080"]
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
@@ -67,7 +71,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: bt-backend
-    ports: ["8080:8080"]
+    # 외부 노출 금지. nginx 가 같은 호스트의 backend:8080 으로 프록시.
+    # 직접 호출은 SSH 터널: ssh -L 8080:localhost:8080 ubuntu@<host>
+    ports: ["127.0.0.1:8080:8080"]
     env_file: [.env]
     environment:
       - REDIS_HOST=redis
