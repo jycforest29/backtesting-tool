@@ -7,10 +7,15 @@ backend/target/
 *.class
 *.jar
 *.log
+backend/.jqwik-database
 
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
+frontend/.playwright/
 
 # OS
 .DS_Store
@@ -19,3 +24,4 @@ Thumbs.db
 # Env
 .env
 .env.*
+!.env.example
