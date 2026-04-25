@@ -10,7 +10,6 @@ export default function PriceChart({ data, currency }) {
   const lastPrice = chartData[chartData.length - 1]?.price
   const isPositive = lastPrice >= firstPrice
   const lineColor = isPositive ? '#059669' : '#dc2626'
-  const fillColor = isPositive ? '#05966920' : '#dc262620'
 
   const formatPrice = (value) => {
     if (currency === 'KRW') return value.toLocaleString('ko-KR') + '원'
