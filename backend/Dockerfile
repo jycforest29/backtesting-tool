@@ -20,11 +20,15 @@ WORKDIR /app
 
 # 비-root 유저로 실행 (보안)
 RUN addgroup -S app && adduser -S app -G app
+
+# H2 파일 저장 디렉토리. VOLUME 선언 전에 owner 를 app 으로 잡아야
+# named volume 첫 마운트 시 권한이 inherit 됨.
+RUN mkdir -p /data && chown -R app:app /data
+
 USER app
 
 COPY --from=build /app/app.jar /app/app.jar
 
-# H2 파일 저장용 볼륨 마운트 지점
 VOLUME ["/data"]
 ENV DB_PATH=/data/backtesting-tool-db
 
