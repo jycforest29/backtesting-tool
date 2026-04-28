@@ -5,7 +5,7 @@ spring:
   # 파일 모드. 앱 재시작 시 OCO 포지션·전략 상태·감사로그 복원.
   # H2 콘솔: http://localhost:8080/h2-console (로컬 전용, 운영 배포 시 비활성화 필요)
   datasource:
-    url: jdbc:h2:file:${DB_PATH:${user.home}/.backtesting-tool-db;AUTO_SERVER=TRUE}
+    url: jdbc:h2:file:${DB_PATH:${user.home}/.backtesting-tool-db};AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password: ${DB_PASSWORD:}

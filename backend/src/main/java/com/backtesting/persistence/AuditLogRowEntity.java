@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "audit_log",
        indexes = {
-         @Index(name = "idx_audit_ts", columnList = "timestamp DESC"),
-         @Index(name = "idx_audit_level", columnList = "level")
+         @Index(name = "idx_audit_ts", columnList = "ts DESC"),
+         @Index(name = "idx_audit_level", columnList = "log_level")
        })
 @Data
 @Builder
@@ -30,7 +30,7 @@ public class AuditLogRowEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "ts", nullable = false)
     private LocalDateTime timestamp;
 
     @Column(length = 10)
@@ -42,7 +42,7 @@ public class AuditLogRowEntity {
     @Column(length = 128)
     private String action;
 
-    @Column(length = 64)
+    @Column(name = "log_user", length = 64)
     private String user;
 
     @Column(length = 4000)
@@ -51,7 +51,7 @@ public class AuditLogRowEntity {
     private int responseStatus;
     private long durationMs;
 
-    @Column(length = 10)
+    @Column(name = "log_level", length = 10)
     private String level;
 
     @Column(length = 2048)
