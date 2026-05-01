@@ -25,9 +25,10 @@ public class QuantExecutionLog {
     private String errorMessage;
 
     public enum ExecutionKind {
-        SCHEDULED,   // 월말 스케줄러가 자동 실행
-        MANUAL,      // UI에서 수동 트리거 (실주문)
-        DRY_RUN      // 주문 시뮬레이션 (실주문 안 함)
+        SCHEDULED,    // 월말 스케줄러가 자동 실행
+        MANUAL,       // UI에서 수동 트리거 (실주문)
+        DRY_RUN,      // 주문 시뮬레이션 (실주문 안 함)
+        LIQUIDATION   // 일임 종료 시 보유 포지션 전량 매도 (SELL-only)
     }
 
     @Data
