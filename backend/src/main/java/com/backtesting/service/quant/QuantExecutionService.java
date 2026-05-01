@@ -15,6 +15,7 @@ import com.backtesting.service.DailyLossGuard;
 import com.backtesting.service.EmailService;
 import com.backtesting.service.kis.KisMarketDataService;
 import com.backtesting.service.kis.KisTradingService;
+import com.backtesting.service.kis.KrxCalendarService;
 import com.backtesting.service.kis.MarketSymbol;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,8 @@ public class QuantExecutionService {
     private final QuantStrategyRegistry registry;
     private final StrategyConfigRepository configRepo;
     private final StrategyExecutionRepository execRepo;
+    private final QuantExecutionPublisher executionPublisher;
+    private final KrxCalendarService krxCalendar;
 
     /** 전략별 상태(활성화 여부, 할당 금액, 최근 로그). */
     private final Map<QuantStrategyType, MutableState> states = new ConcurrentHashMap<>();
@@ -94,8 +97,27 @@ public class QuantExecutionService {
             }
             log.info("Quant strategies restored: {} (enabled={})",
                     all.size(), all.stream().filter(StrategyConfigEntity::isEnabled).count());
+
+            // KIS 미설정 상태에서 enabled=true 면 매 스케줄러 tick 마다 토큰 발급 실패로 시끄러워짐.
+            // 부팅 시점에 자동 비활성화 + 메일로 운영자에게 알림 — 키 채우면 사용자가 다시 활성화하면 됨.
+            autoDisableIfKisMissing();
         } catch (Exception e) {
             log.error("Quant strategy restore failed: {}", e.getMessage(), e);
+        }
+    }
+
+    /** 환경변수가 빠진 채 부팅된 경우 활성 전략을 자동 비활성화 + 알림. */
+    private void autoDisableIfKisMissing() {
+        if (kisProps.isConfigured()) return;
+        for (Map.Entry<QuantStrategyType, MutableState> e : states.entrySet()) {
+            MutableState s = e.getValue();
+            if (!s.enabled) continue;
+            log.warn("Auto-disabling {} — KIS API key missing at boot", e.getKey());
+            s.enabled = false;
+            persistConfig(s);
+            sendLifecycleEmailSafe(e.getKey(), "AUTO_DISABLED",
+                    "KIS API 키 미설정 (HANTOO_API_KEY/HANTOO_API_SECRET/HANTOO_ACCOUNT 부팅 시점에 비어 있음)",
+                    s.allocated);
         }
     }
 
@@ -136,15 +158,145 @@ public class QuantExecutionService {
         s.smaMonths = req.getSmaMonths();
         persistConfig(s);
         log.info("Quant strategy ENABLED: type={} allocated={}", type, s.allocated);
+        sendLifecycleEmailSafe(type, "ENABLED", "사용자 요청", s.allocated);
         return snapshot(s);
     }
 
     public synchronized QuantStrategyState disable(QuantStrategyType type) {
         MutableState s = states.computeIfAbsent(type, MutableState::new);
+        boolean wasEnabled = s.enabled;
         s.enabled = false;
         persistConfig(s);
         log.info("Quant strategy DISABLED: type={}", type);
+        if (wasEnabled) {
+            // 비활성→비활성 (no-op) 호출에는 메일 안 보냄.
+            sendLifecycleEmailSafe(type, "DISABLED", "사용자 요청", s.allocated);
+        }
         return snapshot(s);
+    }
+
+    /**
+     * 일임 종료 시 보유 포지션 청산 (SELL-only).
+     *
+     *  - dryRun=true  : 실주문 없이 미리보기 outcome 만 (R2 패턴: 미리보기→확정)
+     *  - dryRun=false : 관리 심볼 전량 시장가 매도. best-effort — 한 종목 실패는 다른 종목에 영향 없음.
+     *
+     * 청산 대상 = (전략 유니버스 ∪ defaultUniverse) ∩ KIS 잔고에 quantity>0 있는 심볼.
+     * 다른 전략과 공유되는 심볼이 있을 수 있으므로 유니버스 외 보유는 건드리지 않는다.
+     *
+     * 호출 순서 가정 (controller 가 보장): dryRun=false 일 때는 disable() 먼저 호출하여 enabled=false 후 청산.
+     * 이렇게 하면 청산 도중 스케줄러가 재발화하지 않는다.
+     */
+    public synchronized QuantExecutionLog liquidate(QuantStrategyType type, boolean dryRun) {
+        QuantStrategy strategy = registry.get(type);
+        MutableState state = states.computeIfAbsent(type, MutableState::new);
+        LocalDateTime now = LocalDateTime.now(SEOUL);
+
+        List<QuantAsset> universe = state.universe != null && !state.universe.isEmpty()
+                ? state.universe : strategy.defaultUniverse();
+        Set<String> universeSymbols = new LinkedHashSet<>();
+        for (QuantAsset a : universe) universeSymbols.add(a.getSymbol());
+
+        List<QuantExecutionLog.OrderOutcome> outcomes = new ArrayList<>();
+        String err = null;
+
+        try {
+            BalanceResult balance = kisTrading.getBalance(AssetType.KR_STOCK);
+            for (BalanceResult.Holding h : balance.getHoldings()) {
+                if (h.getQuantity() <= 0) continue;
+                if (!universeSymbols.contains(h.getSymbol())) continue;
+
+                String name = nameFrom(universe, h.getSymbol());
+                BigDecimal price = h.getCurrentPrice() != null ? h.getCurrentPrice() : BigDecimal.ZERO;
+
+                if (dryRun) {
+                    BigDecimal evalAmount = h.getEvalAmount() != null ? h.getEvalAmount() : BigDecimal.ZERO;
+                    outcomes.add(QuantExecutionLog.OrderOutcome.builder()
+                            .symbol(h.getSymbol()).name(name).side("SELL")
+                            .quantity(h.getQuantity()).price(price)
+                            .success(true)
+                            .message("드라이런: 청산 예정 — 평가금액 ₩" + evalAmount.toPlainString())
+                            .build());
+                } else {
+                    PendingOrder po = new PendingOrder();
+                    po.symbol = h.getSymbol();
+                    po.name = name;
+                    po.side = "SELL";
+                    po.quantity = h.getQuantity();
+                    po.priceSnapshot = price;
+                    outcomes.add(place(po));
+                }
+            }
+        } catch (Exception e) {
+            err = "청산 실행 실패: " + e.getMessage();
+            log.error("Liquidation failed type={}: {}", type, e.getMessage(), e);
+        }
+
+        QuantExecutionLog entry = QuantExecutionLog.builder()
+                .executedAt(now)
+                .strategyType(type)
+                .kind(QuantExecutionLog.ExecutionKind.LIQUIDATION)
+                .orders(outcomes)
+                .errorMessage(err)
+                .build();
+        state.appendLog(entry);
+        persistExecution(entry);
+
+        if (!dryRun) {
+            // 실청산 후 비중 캐시 클리어 — 다음 enable 시 fresh 시그널부터 시작.
+            state.currentWeights = new LinkedHashMap<>();
+            persistConfig(state);
+            try { sendExecutionEmail(type, strategy, entry); } catch (Exception ex) {
+                log.warn("Liquidation email failed (non-fatal): {}", ex.getMessage());
+            }
+        }
+        try { executionPublisher.publish(entry); } catch (Exception ignored) {}
+        return entry;
+    }
+
+    /**
+     * 일임 시작/종료/자동 차단 같은 라이프사이클 이벤트 알림.
+     * 격리: 메일 실패가 enable/disable 흐름을 방해하지 않게 try-catch.
+     */
+    private void sendLifecycleEmailSafe(QuantStrategyType type, String event, String reason, BigDecimal allocated) {
+        try {
+            if (!emailService.isConfigured()) return;
+            QuantStrategy strat = registry.get(type);
+            String label = strat != null ? strat.displayName() : type.name();
+            String eventLabel = switch (event) {
+                case "ENABLED" -> "일임 시작";
+                case "DISABLED" -> "일임 종료";
+                case "AUTO_DISABLED" -> "일임 자동 종료";
+                default -> event;
+            };
+            String subject = String.format("[로보어드바이저] %s — %s", label, eventLabel);
+            StringBuilder sb = new StringBuilder();
+            sb.append("<div style='font-family:sans-serif;max-width:640px'>");
+            sb.append("<h3 style='margin:0 0 8px'>").append(label).append(" — ").append(eventLabel).append("</h3>");
+            sb.append("<p style='color:#6b7280;margin:0 0 16px;font-size:0.9rem'>")
+                    .append("이 메일은 로보어드바이저 자동 매매 시스템이 발송했습니다.</p>");
+            sb.append("<table style='border-collapse:collapse;margin-bottom:14px'>");
+            sb.append("<tr>").append(th("발생 시각")).append(td(LocalDateTime.now().toString())).append("</tr>");
+            sb.append("<tr>").append(th("사유")).append(td(reason)).append("</tr>");
+            if (allocated != null && allocated.signum() > 0) {
+                sb.append("<tr>").append(th("일임 금액")).append(td("₩" + allocated.toPlainString())).append("</tr>");
+            }
+            sb.append("</table>");
+            if ("ENABLED".equals(event)) {
+                sb.append("<p style='color:#374151'>다음 자동 리밸런싱: <b>매월 말일 (15:25 KST)</b>. ")
+                        .append("로보어드바이저 페이지에서 [지금 즉시 리밸런싱] 으로 수동 트리거도 가능합니다.</p>");
+            } else if ("DISABLED".equals(event)) {
+                sb.append("<p style='color:#374151'>일임이 종료되었습니다. ")
+                        .append("⚠ 보유 중인 포지션은 자동 청산되지 않습니다 — 필요하면 수동 매도하세요.</p>");
+            } else if ("AUTO_DISABLED".equals(event)) {
+                sb.append("<p style='color:#B91C1C'>⚠ 시스템이 일임을 자동 종료했습니다. ")
+                        .append("재개하려면 사유를 해소한 뒤 화면에서 다시 [일임 시작] 하세요.</p>");
+            }
+            sb.append("</div>");
+            emailService.sendHtml(subject, sb.toString());
+        } catch (Exception e) {
+            log.warn("Lifecycle email failed (non-fatal) type={} event={}: {}", type, event, e.getMessage());
+        }
     }
 
     public QuantStrategyState getState(QuantStrategyType type) {
@@ -159,6 +311,20 @@ public class QuantExecutionService {
         return out;
     }
 
+    /**
+     * 모든 전략의 최근 실행 이력을 시간 desc 로 평탄화 — SSE timeline 페이지의 백필 용도.
+     * limit 까지만 잘라 반환. 전략 수×개당 최대 50건이 상한이라 사이즈 폭발 위험 없음.
+     */
+    public List<QuantExecutionLog> listRecentAll(int limit) {
+        List<QuantExecutionLog> all = new ArrayList<>();
+        for (MutableState s : states.values()) {
+            all.addAll(s.recent);
+        }
+        all.sort(Comparator.comparing(QuantExecutionLog::getExecutedAt,
+                Comparator.nullsLast(Comparator.reverseOrder())));
+        return all.size() > limit ? all.subList(0, limit) : all;
+    }
+
     // ========== 스케줄러 ==========
 
     /**
@@ -169,6 +335,13 @@ public class QuantExecutionService {
     public void scheduledCheck() {
         if (!kisProps.isConfigured()) {
             log.debug("KIS not configured, skipping scheduled quant check");
+            return;
+        }
+        // R8: KRX 영업일 가드 — cron 의 MON-FRI 만으로는 신정·설·추석·임시휴장 회피 불가.
+        // KIS chk-holiday 캐시로 정확한 휴장일 판정. fetch 실패 시 보수적 skip.
+        LocalDate today = LocalDate.now(SEOUL);
+        if (!krxCalendar.isOpenDay(today)) {
+            log.info("KRX holiday {} — skipping scheduled quant check", today);
             return;
         }
         for (Map.Entry<QuantStrategyType, MutableState> e : states.entrySet()) {
@@ -287,6 +460,12 @@ public class QuantExecutionService {
             sendExecutionEmail(type, strategy, logEntry);
         } catch (Exception mailEx) {
             log.warn("Execution email failed (non-fatal): {}", mailEx.getMessage());
+        }
+        // 실시간 SSE 브로드캐스트 (격리) — 구독자 없을 땐 no-op.
+        try {
+            executionPublisher.publish(logEntry);
+        } catch (Exception sseEx) {
+            log.warn("Execution SSE publish failed (non-fatal): {}", sseEx.getMessage());
         }
         return logEntry;
     }
@@ -539,27 +718,114 @@ public class QuantExecutionService {
                 .build();
         state.appendLog(entry);
         persistExecution(entry);
+        try { executionPublisher.publish(entry); } catch (Exception ignored) {}
         return entry;
     }
 
-    private void sendExecutionEmail(QuantStrategyType type, QuantStrategy strat, QuantExecutionLog entry) {
+    /** package-private for QuantExecutionEmailTest — DRY_RUN 차단 / LossGuard subject 분기 검증. */
+    void sendExecutionEmail(QuantStrategyType type, QuantStrategy strat, QuantExecutionLog entry) {
         if (!emailService.isConfigured()) return;
-        String subject = String.format("[퀀트 실행] %s %s",
-                strat.displayName(),
-                entry.getErrorMessage() == null ? "리밸런싱 완료" : "오류");
+        // DRY_RUN 은 사용자가 미리보기 차원에서 자주 트리거 — 메일이 곧 noise 가 됨.
+        // 실제 거래(MANUAL) + 자동 거래(SCHEDULED) 만 알림. 거래 *오류* 도 메일 발송 (운영자 확인 필요).
+        if (entry.getKind() == QuantExecutionLog.ExecutionKind.DRY_RUN) {
+            log.debug("Skip email for DRY_RUN execution: {}", type);
+            return;
+        }
+
+        // 매수/매도 건수 + LossGuard 차단 여부 집계 — subject 한눈에 보이도록.
+        long buys = 0, sells = 0, blocked = 0;
+        if (entry.getOrders() != null) {
+            for (var o : entry.getOrders()) {
+                // LossGuard 차단은 OrderOutcome 의 message 로 식별 (executeRebalance 가 박은 상수 문자열).
+                // 깨끗한 방법은 OrderOutcome 에 boolean 추가지만, 메일 한정의 분기라 string match 로 충분.
+                if (!o.isSuccess() && o.getMessage() != null && o.getMessage().contains("손실 한도")) {
+                    blocked++;
+                    continue;
+                }
+                if ("BUY".equals(o.getSide())) buys++;
+                else if ("SELL".equals(o.getSide())) sells++;
+            }
+        }
+
+        String kindLabel = switch (entry.getKind()) {
+            case MANUAL -> "수동 리밸런싱";
+            case SCHEDULED -> "자동 리밸런싱";
+            case LIQUIDATION -> "일임 종료 + 청산";
+            default -> entry.getKind().name();
+        };
+        // 청산 시 일부 매도 실패는 잔여 포지션을 의미 — 운영자 인지 필요.
+        long sellFailed = 0;
+        if (entry.getKind() == QuantExecutionLog.ExecutionKind.LIQUIDATION && entry.getOrders() != null) {
+            for (var o : entry.getOrders()) {
+                if (!o.isSuccess() && "SELL".equals(o.getSide())) sellFailed++;
+            }
+        }
+
+        String subject;
+        if (entry.getErrorMessage() != null) {
+            subject = String.format("[로보어드바이저] ⚠ %s — %s 오류", strat.displayName(), kindLabel);
+        } else if (blocked > 0) {
+            // 손실 한도 차단은 운영자 즉시 인지가 필요한 사건 — subject 에 ⚠ 명시.
+            subject = String.format("[로보어드바이저] ⚠ %s — 손실 한도 차단으로 매수 %d건 스킵 (매도 %d건만 실행)",
+                    strat.displayName(), blocked, sells);
+        } else if (entry.getKind() == QuantExecutionLog.ExecutionKind.LIQUIDATION) {
+            if (sellFailed > 0) {
+                subject = String.format("[로보어드바이저] ⚠ %s — %s (매도 성공 %d / 실패 %d, 잔여 포지션 있음)",
+                        strat.displayName(), kindLabel, sells - sellFailed, sellFailed);
+            } else {
+                subject = String.format("[로보어드바이저] %s — %s 완료 (매도 %d건)",
+                        strat.displayName(), kindLabel, sells);
+            }
+        } else {
+            subject = String.format("[로보어드바이저] %s — %s 완료 (매수 %d / 매도 %d)",
+                    strat.displayName(), kindLabel, buys, sells);
+        }
+
+        MutableState st = states.get(type);
+        BigDecimal allocated = st != null ? st.allocated : null;
+
         StringBuilder sb = new StringBuilder();
-        sb.append("<div style='font-family:sans-serif'>");
-        sb.append("<h3>").append(strat.displayName()).append(" 실행 결과</h3>");
-        sb.append("<p>실행 시각: ").append(entry.getExecutedAt()).append("</p>");
-        sb.append("<p>종류: ").append(entry.getKind()).append("</p>");
-        if (entry.getSignal() != null) {
-            sb.append("<p>시그널: ").append(entry.getSignal().getRationale()).append("</p>");
+        sb.append("<div style='font-family:sans-serif;max-width:640px'>");
+        sb.append("<h3 style='margin:0 0 8px'>").append(strat.displayName()).append(" — ").append(kindLabel).append("</h3>");
+        sb.append("<p style='color:#6b7280;margin:0 0 16px;font-size:0.9rem'>")
+                .append("이 메일은 로보어드바이저 자동 매매 시스템이 발송했습니다.</p>");
+
+        sb.append("<table style='border-collapse:collapse;margin-bottom:14px'>");
+        sb.append("<tr>").append(th("실행 시각")).append(td(String.valueOf(entry.getExecutedAt()))).append("</tr>");
+        sb.append("<tr>").append(th("실행 종류")).append(td(kindLabel)).append("</tr>");
+        if (allocated != null && allocated.signum() > 0) {
+            sb.append("<tr>").append(th("일임 금액")).append(td("₩" + allocated.toPlainString())).append("</tr>");
+        }
+        sb.append("</table>");
+
+        if (blocked > 0) {
+            sb.append("<div style='background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B;")
+                    .append("padding:10px 14px;border-radius:8px;margin-bottom:12px'>")
+                    .append("<b>⚠ 일일 손실 한도 차단 발생 (").append(blocked).append("건)</b><br>")
+                    .append("DAILY_LOSS_LIMIT_KRW 임계 도달로 매수 주문이 막혔습니다. ")
+                    .append("매도는 정상 실행되어 포지션 일부가 청산되었을 수 있습니다. ")
+                    .append("손실 한도를 검토 후 다음 거래일에 재시도되거나 수동 트리거 가능.")
+                    .append("</div>");
+        }
+        if (entry.getKind() == QuantExecutionLog.ExecutionKind.LIQUIDATION && sellFailed > 0) {
+            sb.append("<div style='background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B;")
+                    .append("padding:10px 14px;border-radius:8px;margin-bottom:12px'>")
+                    .append("<b>⚠ 일부 매도 실패 — 잔여 포지션 ").append(sellFailed).append("건</b><br>")
+                    .append("일임은 종료되었으나 일부 종목이 청산되지 않았습니다. ")
+                    .append("실패 원인(시장가 거부/거래정지/잔량 불일치 등) 확인 후 수동 매도하세요.")
+                    .append("</div>");
+        } else if (entry.getKind() == QuantExecutionLog.ExecutionKind.LIQUIDATION) {
+            sb.append("<p style='color:#374151'>일임이 종료되었고 보유 포지션이 모두 청산되었습니다. ")
+                    .append("계좌의 다른 종목(타 전략·수동 매수)은 영향받지 않습니다.</p>");
+        }
+        if (entry.getSignal() != null && entry.getSignal().getRationale() != null) {
+            sb.append("<p><b>시그널:</b> ").append(entry.getSignal().getRationale()).append("</p>");
         }
         if (entry.getErrorMessage() != null) {
-            sb.append("<p style='color:#B91C1C'>오류: ").append(entry.getErrorMessage()).append("</p>");
+            sb.append("<p style='color:#B91C1C'><b>⚠ 오류:</b> ").append(entry.getErrorMessage()).append("</p>");
         }
         if (entry.getOrders() != null && !entry.getOrders().isEmpty()) {
-            sb.append("<table style='border-collapse:collapse'><tr>")
+            sb.append("<table style='border-collapse:collapse;width:100%'><tr>")
                     .append(th("종목")).append(th("구분")).append(th("수량"))
                     .append(th("가격")).append(th("결과")).append("</tr>");
             for (var o : entry.getOrders()) {
@@ -568,11 +834,14 @@ public class QuantExecutionService {
                         .append(td(o.getSide()))
                         .append(td(String.valueOf(o.getQuantity())))
                         .append(td(o.getPrice() == null ? "-" : o.getPrice().toPlainString()))
-                        .append(td((o.isSuccess() ? "✅ " : "❌ ") + o.getMessage()))
+                        .append(td((o.isSuccess() ? "✅ " : "❌ ") + (o.getMessage() == null ? "" : o.getMessage())))
                         .append("</tr>");
             }
             sb.append("</table>");
         }
+        sb.append("<p style='color:#6b7280;font-size:0.85rem;margin-top:18px'>")
+                .append("다음 자동 리밸런싱: 매월 말일 (15:25 KST). ")
+                .append("일임 종료를 원하시면 화면에서 [일임 종료] 버튼을 누르세요.</p>");
         sb.append("</div>");
         emailService.sendHtml(subject, sb.toString());
     }
