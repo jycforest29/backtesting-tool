@@ -10,7 +10,7 @@ import OcoPanel from './components/OcoPanel'
 import AlertsToggle from './components/AlertsToggle'
 import CrisisScenario from './components/CrisisScenario'
 import AuditLog from './components/AuditLog'
-import KangQuantStrategy from './components/KangQuantStrategy'
+import RoboAdvisor from './components/RoboAdvisor'
 
 function App() {
   const [mode, setMode] = useState('portfolio')
@@ -63,7 +63,7 @@ function App() {
       <div className="mode-tabs">
         {[
           { key: 'portfolio', label: '포트폴리오' },
-          { key: 'quant', label: '강환국 퀀트 전략' },
+          { key: 'quant', label: '로보어드바이저' },
           { key: 'oco', label: '자동매매' },
           { key: 'investor', label: '투자자별 매매동향' },
           { key: 'trading', label: '계좌·주문' },
@@ -79,7 +79,7 @@ function App() {
       </div>
 
       {mode === 'portfolio' && <PortfolioForm onSubmit={handlePortfolioSubmit} loading={loading} />}
-      {mode === 'quant' && <KangQuantStrategy />}
+      {mode === 'quant' && <RoboAdvisor />}
       {mode === 'oco' && <OcoPanel />}
       {mode === 'investor' && <InvestorFlowForm onSubmit={handleInvestorSubmit} loading={loading} />}
       {mode === 'trading' && <AutoTrading />}
