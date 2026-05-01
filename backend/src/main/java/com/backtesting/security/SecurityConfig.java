@@ -106,6 +106,11 @@ public class SecurityConfig {
                 // ---- OpenAPI 문서 (로컬/스테이징 탐색용) ----
                 auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
 
+                // ---- WebSocket / SockJS — anonymous 연결 허용 (per-message 권한은 STOMP layer 에서 검증) ----
+                // SockJS info / xhr / websocket transport 핸드셰이크가 모두 /ws 하위로 들어옴.
+                // 막으면 AlertsToggle 같은 알림 클라이언트가 401 폭발 후 재시도 루프 발생.
+                auth.requestMatchers("/ws/**").permitAll();
+
                 // ---- 관측성 ----
                 auth.requestMatchers("/actuator/prometheus").hasAnyRole("SCRAPER", "ADMIN");
                 auth.requestMatchers("/actuator/**").hasRole("ADMIN");

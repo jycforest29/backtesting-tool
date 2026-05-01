@@ -42,8 +42,11 @@ public class SecurityProperties {
 
     @Data
     public static class ApiKey {
-        /** 헤더 X-API-Key 로 전송될 값. 평문 비교 (로컬 SECRET 관리 전제). */
-        @NotBlank
+        /**
+         * 헤더 X-API-Key 로 전송될 값. 평문 비교 (로컬 SECRET 관리 전제).
+         * 빈 값 허용 — env 미설정 항목은 {@link ApiKeyRegistry} 에서 skip 되고,
+         * 전부 비어 size=0 인 경우 {@link SecurityConfig} 가 open-dev / boot-fail 분기로 처리.
+         */
         private String key;
         /** 감사 로그 등에 기록될 주체 이름. */
         @NotBlank
