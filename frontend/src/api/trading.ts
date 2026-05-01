@@ -86,7 +86,42 @@ export interface WatchAddRequest {
 // ─── fetch 래퍼 ────────────────────────────────────────────────────────────────
 
 /**
- * JSON 응답 강제 + 4xx/5xx → Error throw.
+ * 백엔드 GlobalExceptionHandler 가 만드는 표준 에러 페이로드.
+ * 변경 시 백엔드 ErrorResponse 와 동기화 필요.
+ */
+export interface ApiErrorPayload {
+  code?: string
+  message?: string
+  traceId?: string
+  /** legacy — 일부 컨트롤러가 여전히 {error: "..."} 형식을 반환할 수 있어 호환 유지. */
+  error?: string
+}
+
+/**
+ * fetch 실패 시 던져지는 에러. status/code 를 보존해 호출자가 분기 가능.
+ *  - 503 + code='DEPENDENCY_NOT_CONFIGURED': 외부 의존성 미설정 (UX 상 inline 배너)
+ *  - 401/403: 인증/권한
+ *  - 그 외: 일반 에러 토스트
+ */
+export class ApiError extends Error {
+  readonly status: number
+  readonly code?: string
+  readonly traceId?: string
+  constructor(status: number, payload: ApiErrorPayload, fallback: string) {
+    super(payload.message || payload.error || fallback)
+    this.name = 'ApiError'
+    this.status = status
+    this.code = payload.code
+    this.traceId = payload.traceId
+  }
+  /** 의존성 미설정 — UI 가 토스트 대신 inline 배너로 보여주도록. */
+  isDependencyMissing() {
+    return this.status === 503 && this.code === 'DEPENDENCY_NOT_CONFIGURED'
+  }
+}
+
+/**
+ * JSON 응답 강제 + 4xx/5xx → ApiError throw.
  *
  * 왜 throw 인가:
  *   - 호출자가 try/catch 로 분기 vs `if (!res.ok)` 분기는 noisy. throw 가 한국 표준.
@@ -95,12 +130,11 @@ export interface WatchAddRequest {
  */
 async function callJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const res = await fetch(input, init)
-  const data = await res.json().catch(() => ({}))
+  const data = (await res.json().catch(() => ({}))) as ApiErrorPayload
   if (!res.ok) {
-    const err = (data as { error?: string }).error || res.statusText || 'request failed'
-    throw new Error(err)
+    throw new ApiError(res.status, data, res.statusText || 'request failed')
   }
-  return data as T
+  return data as unknown as T
 }
 
 // ─── 엔드포인트 ───────────────────────────────────────────────────────────────

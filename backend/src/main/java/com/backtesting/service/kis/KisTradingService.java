@@ -1,5 +1,6 @@
 package com.backtesting.service.kis;
 
+import com.backtesting.common.error.ConfigurationMissingException;
 import com.backtesting.config.KisProperties;
 import com.backtesting.model.AssetType;
 import com.backtesting.model.BalanceResult;
@@ -64,6 +65,9 @@ public class KisTradingService {
         try {
             JsonNode res = http.post(p.getBaseUrl() + "/uapi/domestic-stock/v1/trading/order-cash", body, headers);
             return buildOrderResult(res);
+        } catch (ConfigurationMissingException e) {
+            // 의존성 미설정 — RuntimeException 으로 wrap 하지 않고 그대로 통과시켜 503 핸들러에 도달.
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("KIS domestic order failed: " + e.getMessage(), e);
         }
@@ -108,6 +112,8 @@ public class KisTradingService {
         try {
             JsonNode res = http.post(p.getBaseUrl() + "/uapi/overseas-stock/v1/trading/order", body, headers);
             return buildOrderResult(res);
+        } catch (ConfigurationMissingException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("KIS overseas order failed: " + e.getMessage(), e);
         }
@@ -208,6 +214,8 @@ public class KisTradingService {
                     .totalPnlRate(num(summary.path("asst_icdc_erng_rt")))
                     .holdings(holdings)
                     .build();
+        } catch (ConfigurationMissingException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("KIS domestic balance failed: " + e.getMessage(), e);
         }
@@ -255,6 +263,8 @@ public class KisTradingService {
                     .totalPnlRate(num(summary.path("tot_pftrt")))
                     .holdings(holdings)
                     .build();
+        } catch (ConfigurationMissingException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("KIS overseas balance failed: " + e.getMessage(), e);
         }

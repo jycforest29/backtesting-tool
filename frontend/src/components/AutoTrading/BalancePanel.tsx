@@ -26,7 +26,19 @@ export function BalancePanel({ refreshKey }: Props) {
       </div>
 
       {loading && <p style={{ color: '#6b7280' }}>조회 중...</p>}
-      {error && <div className="error-msg">{error}</div>}
+      {error && (
+        error.dependencyMissing ? (
+          // 의존성 미설정 — 운영자 안내성 메시지. 토스트가 아니라 inline 배너 1회.
+          <div className="info-banner" style={{
+            background: '#FEF3C7', color: '#92400E', padding: '10px 14px',
+            borderRadius: 8, fontSize: '0.85rem', marginTop: 8,
+          }}>
+            ⚠ {error.message}
+          </div>
+        ) : (
+          <div className="error-msg">{error.message}</div>
+        )
+      )}
       {balance && (
         <>
           <div className="risk-grid" style={{ marginTop: 12 }}>

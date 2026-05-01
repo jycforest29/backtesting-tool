@@ -3,6 +3,7 @@ import SymbolSearchInput from './SymbolSearchInput'
 import { pushToast } from '../toast'
 import { fmtQty, fmtInt } from '../utils/formatters'
 import MoneyInput from '../utils/MoneyInput'
+import { tradingApi, ApiError } from '../api/trading'
 
 const DEFAULT_TP = [
   { percent: 2, quantityFraction: 0.33 },
@@ -187,7 +188,7 @@ const btnGhost = {
 
 // ===================== 보유 종목 피커 (EXISTING_HOLDING 모드) =====================
 
-function HoldingsPicker({ holdings, loading, onRefresh, onPick, selectedSymbol }) {
+function HoldingsPicker({ holdings, loading, error, onRefresh, onPick, selectedSymbol }) {
   return (
     <div style={{
       marginBottom: 14,
@@ -211,10 +212,20 @@ function HoldingsPicker({ holdings, loading, onRefresh, onPick, selectedSymbol }
         </button>
       </div>
 
-      {loading && holdings == null && (
+      {error && (
+        // 의존성 미설정/일반 오류 모두 inline 으로. 자동 reload 로 토스트 폭발했던 기존 동작 대체.
+        <div style={{
+          background: error.dependencyMissing ? '#FEF3C7' : '#FEE2E2',
+          color: error.dependencyMissing ? '#92400E' : '#991B1B',
+          padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem',
+        }}>
+          {error.dependencyMissing ? '⚠ ' : '✗ '}{error.message}
+        </div>
+      )}
+      {!error && loading && holdings == null && (
         <div style={{ color: '#9CA3AF', padding: 12 }}>잔고 불러오는 중...</div>
       )}
-      {holdings != null && holdings.length === 0 && (
+      {!error && holdings != null && holdings.length === 0 && (
         <div style={{ color: '#9CA3AF', padding: 12 }}>
           보유 중인 국내 주식이 없습니다.
         </div>
@@ -281,6 +292,7 @@ function OrderForm({ onRegistered }) {
   // EXISTING_HOLDING 모드용
   const [holdings, setHoldings] = useState(null)      // null = not loaded yet, [] = loaded empty
   const [holdingsLoading, setHoldingsLoading] = useState(false)
+  const [holdingsError, setHoldingsError] = useState(null)  // {message, dependencyMissing}
   const [pickedAvgPrice, setPickedAvgPrice] = useState(null)
 
   const isConditional = entryType === 'BREAKOUT_ABOVE' || entryType === 'BREAKOUT_BELOW'
@@ -297,15 +309,18 @@ function OrderForm({ onRegistered }) {
   }, [entryType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadHoldings = async () => {
-    setHoldingsLoading(true)
+    setHoldingsLoading(true); setHoldingsError(null)
     try {
-      const res = await fetch('/api/trading/balance?market=KR_STOCK')
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || '잔고 조회 실패')
+      const data = await tradingApi.balance('KR_STOCK')
       setHoldings(data.holdings || [])
     } catch (e) {
-      pushToast(e.message, { type: 'error' })
+      // 503 (DEPENDENCY_NOT_CONFIGURED) 은 토스트로 띄우지 않는다 — 환경변수 안내성이라
+      // entryType 변경/주문 후 재로드 때마다 토스트가 누적되면 noisy. inline 배너로 1회만.
+      const isApiErr = e instanceof ApiError
+      const dependencyMissing = isApiErr && e.isDependencyMissing()
+      setHoldingsError({ message: e.message, dependencyMissing })
       setHoldings([])
+      if (!dependencyMissing) pushToast(e.message, { type: 'error' })
     } finally { setHoldingsLoading(false) }
   }
 
@@ -410,6 +425,7 @@ function OrderForm({ onRegistered }) {
           <HoldingsPicker
             holdings={holdings}
             loading={holdingsLoading}
+            error={holdingsError}
             onRefresh={loadHoldings}
             onPick={pickHolding}
             selectedSymbol={selected?.symbol}

@@ -1,5 +1,6 @@
 package com.backtesting.service.kis;
 
+import com.backtesting.common.error.ConfigurationMissingException;
 import com.backtesting.config.KisProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -73,8 +74,8 @@ public class KisAuthService {
             return cachedToken;
         }
         if (!props.isConfigured()) {
-            throw new IllegalStateException(
-                    "KIS API is not configured. Set HANTOO_API_KEY and HANTOO_API_SECRET environment variables.");
+            throw new ConfigurationMissingException("KIS API",
+                    "KIS API 키가 설정되지 않았습니다. HANTOO_API_KEY / HANTOO_API_SECRET / HANTOO_ACCOUNT 환경변수를 설정하세요.");
         }
         rateLimiter.acquireToken();
         try {
@@ -115,8 +116,8 @@ public class KisAuthService {
             return cachedRealToken;
         }
         if (!props.isConfigured()) {
-            throw new IllegalStateException(
-                    "KIS API is not configured. Set HANTOO_API_KEY and HANTOO_API_SECRET environment variables.");
+            throw new ConfigurationMissingException("KIS API",
+                    "KIS API 키가 설정되지 않았습니다. HANTOO_API_KEY / HANTOO_API_SECRET / HANTOO_ACCOUNT 환경변수를 설정하세요.");
         }
         rateLimiter.acquireToken();
         try {
@@ -187,7 +188,8 @@ public class KisAuthService {
             return cachedApprovalKey;
         }
         if (!props.isConfigured()) {
-            throw new IllegalStateException("KIS API is not configured for approval key");
+            throw new ConfigurationMissingException("KIS API",
+                    "WebSocket approval key 발급 불가 — HANTOO_API_KEY / HANTOO_API_SECRET 환경변수를 설정하세요.");
         }
         rateLimiter.acquireToken();
         try {

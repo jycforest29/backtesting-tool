@@ -135,6 +135,16 @@ public class GlobalExceptionHandler {
         return build(ErrorCode.LOSS_GUARD_BLOCKED, ex.getMessage(), req, null, null);
     }
 
+    @ExceptionHandler(ConfigurationMissingException.class)
+    public ResponseEntity<ErrorResponse> handleConfigurationMissing(ConfigurationMissingException ex,
+                                                                     HttpServletRequest req) {
+        // 외부 의존성(API 키 등) 부재. 서버 *버그* 가 아니라 *환경* 문제 — 503 + 메시지 노출.
+        // INFO 로 로깅 (스택트레이스 없음): 환경변수 채우면 사라지는 운영자 안내성 사건.
+        log.info("Dependency not configured path={} dependency={} msg={}",
+                req.getRequestURI(), ex.getDependency(), ex.getMessage());
+        return build(ErrorCode.DEPENDENCY_NOT_CONFIGURED, ex.getMessage(), req, null, null);
+    }
+
     @ExceptionHandler(KisRateLimitedException.class)
     public ResponseEntity<ErrorResponse> handleKisRateLimit(KisRateLimitedException ex, HttpServletRequest req) {
         long retrySec = Math.max(1, ex.getRetryAfterMs() / 1000);

@@ -27,6 +27,7 @@ public enum ErrorCode {
     // 5xx
     DEADLINE_EXCEEDED(HttpStatus.GATEWAY_TIMEOUT, "요청 처리 시간이 초과되었습니다"),
     OVERLOADED(HttpStatus.SERVICE_UNAVAILABLE, "일시적으로 요청을 처리할 수 없습니다 — 잠시 후 재시도하세요"),
+    DEPENDENCY_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "외부 의존성이 설정되지 않아 기능을 사용할 수 없습니다"),
     UPSTREAM_ERROR(HttpStatus.BAD_GATEWAY, "상위 시스템 호출에 실패했습니다"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류");
 
