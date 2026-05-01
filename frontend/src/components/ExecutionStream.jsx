@@ -15,10 +15,10 @@ import { fmtQty } from '../utils/formatters'
  */
 
 const KIND_BADGE = {
-  SCHEDULED:   { label: '자동', bg: '#DBEAFE', fg: '#1E40AF' },
-  MANUAL:      { label: '수동', bg: '#FEE2E2', fg: '#991B1B' },
+  SCHEDULED:   { label: '자동', bg: 'var(--down-soft)', fg: '#1E40AF' },
+  MANUAL:      { label: '수동', bg: 'var(--up-soft)', fg: 'var(--up)' },
   DRY_RUN:     { label: '드라이런', bg: '#DCFCE7', fg: '#166534' },
-  LIQUIDATION: { label: '청산', bg: '#FEF3C7', fg: '#92400E' },
+  LIQUIDATION: { label: '청산', bg: 'var(--warn-soft)', fg: '#92400E' },
 }
 
 const STRATEGY_LABEL = {
@@ -112,7 +112,7 @@ export default function ExecutionStream() {
           실시간 거래 내역
           <span style={{
             marginLeft: 10, fontSize: '0.7rem', fontWeight: 500,
-            color: connected ? '#059669' : '#9CA3AF',
+            color: connected ? 'var(--up)' : 'var(--tx-3)',
           }}>
             {connected ? '● LIVE' : '○ 연결 중...'}
           </span>
@@ -127,7 +127,7 @@ export default function ExecutionStream() {
       {error && <div className="error-msg">{error}</div>}
 
       {filtered.length === 0 ? (
-        <div style={{ color: '#9CA3AF', padding: '20px 0', textAlign: 'center', fontSize: '0.85rem' }}>
+        <div style={{ color: 'var(--tx-3)', padding: '20px 0', textAlign: 'center', fontSize: '0.85rem' }}>
           아직 실행 이력이 없습니다. 일임 시작 또는 즉시 리밸런싱 시 여기에 표시됩니다.
         </div>
       ) : (
@@ -135,13 +135,13 @@ export default function ExecutionStream() {
           {filtered.map((e, i) => {
             const id = e._id || `${e.executedAt}-${e.strategyType}-${e.kind}-${i}`
             const isNew = newIdsRef.current.has(id)
-            const badge = KIND_BADGE[e.kind] || { label: e.kind, bg: '#F3F4F6', fg: '#374151' }
+            const badge = KIND_BADGE[e.kind] || { label: e.kind, bg: 'var(--bg-3)', fg: 'var(--tx-0)' }
             const stratLabel = STRATEGY_LABEL[e.strategyType] || e.strategyType
             return (
               <div key={id} style={{
                 padding: '10px 12px', borderRadius: 8,
-                border: '1px solid ' + (e.errorMessage ? '#FCA5A5' : '#E5E7EB'),
-                background: e.errorMessage ? '#FEF2F2' : (isNew ? '#FEF9C3' : '#F9FAFB'),
+                border: '1px solid ' + (e.errorMessage ? '#FCA5A5' : 'var(--line)'),
+                background: e.errorMessage ? 'var(--up-soft)' : (isNew ? '#FEF9C3' : 'var(--bg-3)'),
                 transition: 'background 1.5s ease-out',
                 fontSize: '0.85rem',
               }}>
@@ -149,7 +149,7 @@ export default function ExecutionStream() {
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   marginBottom: 4,
                 }}>
-                  <span style={{ color: '#6B7280', fontFamily: 'monospace', fontSize: '0.78rem' }}>
+                  <span style={{ color: 'var(--tx-2)', fontFamily: 'monospace', fontSize: '0.78rem' }}>
                     {fmtTime(e.executedAt)}
                   </span>
                   <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -161,23 +161,23 @@ export default function ExecutionStream() {
                   </span>
                 </div>
                 {e.errorMessage && (
-                  <div style={{ color: '#991B1B', fontWeight: 500 }}>⚠ {e.errorMessage}</div>
+                  <div style={{ color: 'var(--up)', fontWeight: 500 }}>⚠ {e.errorMessage}</div>
                 )}
                 {e.signal?.rationale && !e.errorMessage && (
-                  <div style={{ color: '#374151', marginBottom: 4 }}>{e.signal.rationale}</div>
+                  <div style={{ color: 'var(--tx-0)', marginBottom: 4 }}>{e.signal.rationale}</div>
                 )}
                 {e.orders?.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 4 }}>
                     {e.orders.map((o, j) => (
                       <div key={j} style={{
                         fontSize: '0.8rem',
-                        color: o.success === false ? '#991B1B' : (o.side === 'BUY' ? '#DC2626' : o.side === 'SELL' ? '#059669' : '#6B7280'),
+                        color: o.success === false ? 'var(--up)' : (o.side === 'BUY' ? 'var(--down)' : o.side === 'SELL' ? 'var(--up)' : 'var(--tx-2)'),
                       }}>
                         {o.success === false ? '✗' : '●'}{' '}
                         {o.side === 'BUY' ? '매수' : o.side === 'SELL' ? '매도' : o.side}{' '}
                         {o.name} ({o.symbol}) × {fmtQty(o.quantity)}
-                        {o.price > 0 && <span style={{ color: '#6B7280' }}> @ {fmtKrw(o.price)}</span>}
-                        {o.message && <span style={{ color: '#6B7280' }}> — {o.message}</span>}
+                        {o.price > 0 && <span style={{ color: 'var(--tx-2)' }}> @ {fmtKrw(o.price)}</span>}
+                        {o.message && <span style={{ color: 'var(--tx-2)' }}> — {o.message}</span>}
                       </div>
                     ))}
                   </div>

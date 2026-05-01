@@ -11,7 +11,7 @@ export function StatusBar({ status }: Props) {
 
   if (!status.configured) {
     return (
-      <div className="live-status-bar" style={{ background: '#FEF2F2', color: '#991B1B' }}>
+      <div className="live-status-bar" style={{ background: 'var(--up-soft)', color: 'var(--up)' }}>
         <strong>KIS API 미설정</strong>
         <span>.env에 KIS_APP_KEY, KIS_APP_SECRET 설정 후 백엔드 재시작</span>
       </div>

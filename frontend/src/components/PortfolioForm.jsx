@@ -241,7 +241,7 @@ export default function PortfolioForm({ onSubmit, loading }) {
       <div className="assets-section">
         <div className="section-header">
           <label className="section-label">포트폴리오 자산</label>
-          <div className="weight-indicator" style={{ color: weightOk ? '#059669' : '#dc2626' }}>
+          <div className="weight-indicator" style={{ color: weightOk ? 'var(--up)' : 'var(--down)' }}>
             {totalWeight.toFixed(1)}% / 100%
           </div>
         </div>

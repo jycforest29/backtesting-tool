@@ -8,7 +8,7 @@ const STRATEGY_COLORS = {
   VAA: '#7C3AED',
   DAA: '#2563EB',
   LAA: '#0D9488',
-  DUAL_MOMENTUM: '#DC2626',
+  DUAL_MOMENTUM: 'var(--down)',
   HALLOWEEN: '#D97706',
   ARIRANG_FACTOR_ROTATION: '#EA580C',
   SPAC_EVENT_DRIVEN: '#B45309',
@@ -36,7 +36,7 @@ function StrategyCard({ strat, selected, onClick }) {
     <button
       onClick={onClick}
       className={`kang-strat-card ${selected ? 'selected' : ''}`}
-      style={{ borderColor: selected ? color : '#E5E7EB' }}
+      style={{ borderColor: selected ? color : 'var(--line)' }}
     >
       <div className="kang-strat-title" style={{ color }}>{strat.name}</div>
       <div className="kang-strat-desc">{strat.description}</div>
@@ -226,8 +226,8 @@ function LiveTradingPanel({ strategy, state, onChange }) {
       <div className="kang-live-header">
         <h3>일임 매매 (내 KIS 계좌)</h3>
         <div className="kang-enable-badge" style={{
-          background: enabled ? '#DCFCE7' : '#F3F4F6',
-          color: enabled ? '#166534' : '#6B7280',
+          background: enabled ? '#DCFCE7' : 'var(--bg-3)',
+          color: enabled ? '#166534' : 'var(--tx-2)',
         }}>
           {enabled ? '● 일임 중' : '○ 비활성'}
         </div>
@@ -236,7 +236,7 @@ function LiveTradingPanel({ strategy, state, onChange }) {
       {/* KIS 키 미설정 안내 — 일임 시작 자체가 불가능. */}
       {kisStatus && !kisReady && (
         <div style={{
-          background: '#FEF3C7', color: '#92400E', padding: '10px 14px',
+          background: 'var(--warn-soft)', color: '#92400E', padding: '10px 14px',
           borderRadius: 8, fontSize: '0.85rem', marginBottom: 12,
         }}>
           ⚠ KIS API 키 미설정 — 일임 시작 불가. HANTOO_API_KEY / HANTOO_API_SECRET / HANTOO_ACCOUNT 환경변수를 설정 후 백엔드 재시작.
@@ -246,7 +246,7 @@ function LiveTradingPanel({ strategy, state, onChange }) {
       {/* 모의투자 안내 — 실거래/페이퍼 구분 표시. */}
       {kisStatus?.paperTrading && (
         <div style={{
-          background: '#DBEAFE', color: '#1E3A8A', padding: '8px 12px',
+          background: 'var(--down-soft)', color: '#1E3A8A', padding: '8px 12px',
           borderRadius: 8, fontSize: '0.8rem', marginBottom: 12,
         }}>
           ℹ 페이퍼 트레이딩 모드 — 실계좌 주문 X, 모의서버에서만 처리.
@@ -278,12 +278,12 @@ function LiveTradingPanel({ strategy, state, onChange }) {
       {/* DRY_RUN 미리보기 — "이 종목들을 이 비중으로 매수하고 매월 말일 자동 리밸런싱" 확인 단계 */}
       {showPreview && (
         <div style={{
-          marginTop: 14, padding: 16, background: '#F9FAFB',
+          marginTop: 14, padding: 16, background: 'var(--bg-3)',
           border: '2px solid ' + color, borderRadius: 12,
         }}>
           <h4 style={{ margin: '0 0 8px', color }}>📋 일임 시작 전 미리보기 (실주문 X)</h4>
           {previewLog.signal?.rationale && (
-            <div style={{ fontSize: '0.85rem', color: '#374151', marginBottom: 10 }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--tx-0)', marginBottom: 10 }}>
               {previewLog.signal.rationale}
             </div>
           )}
@@ -304,16 +304,16 @@ function LiveTradingPanel({ strategy, state, onChange }) {
                 {previewLog.orders.map((o, i) => (
                   <div key={i} style={{
                     fontSize: '0.85rem',
-                    color: o.side === 'BUY' ? '#DC2626' : '#059669',
+                    color: o.side === 'BUY' ? 'var(--down)' : 'var(--up)',
                   }}>
                     {o.side === 'BUY' ? '🔴 매수' : '🟢 매도'} {o.name} ({o.symbol}) × {fmtQty(o.quantity)}
-                    {o.price && <span style={{ color: '#6B7280' }}> @ {fmtKrw(o.price)}</span>}
+                    {o.price && <span style={{ color: 'var(--tx-2)' }}> @ {fmtKrw(o.price)}</span>}
                   </div>
                 ))}
               </div>
             </>
           ) : (
-            <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--tx-2)' }}>
               현재 시그널 기준 매매할 종목 없음 (목표 비중 0% 또는 이미 보유 중).
             </div>
           )}
@@ -345,16 +345,16 @@ function LiveTradingPanel({ strategy, state, onChange }) {
                    onChange={e => handleToggleLiquidate(e.target.checked)}
                    disabled={running || liquidationLoading}
                    style={{ marginTop: 3 }} />
-            <span style={{ fontSize: '0.88rem', color: '#374151' }}>
+            <span style={{ fontSize: '0.88rem', color: 'var(--tx-0)' }}>
               <b>보유 포지션 청산</b> (이 전략이 관리하는 종목만 시장가 매도)
-              <div style={{ fontSize: '0.78rem', color: '#6B7280', marginTop: 2 }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--tx-2)', marginTop: 2 }}>
                 체크하지 않으면 비활성화만 — 보유 종목은 그대로 남고 사용자가 직접 매도해야 합니다.
               </div>
             </span>
           </label>
 
           {liquidationLoading && (
-            <div style={{ marginTop: 10, fontSize: '0.85rem', color: '#6B7280' }}>
+            <div style={{ marginTop: 10, fontSize: '0.85rem', color: 'var(--tx-2)' }}>
               청산 미리보기 생성 중...
             </div>
           )}
@@ -362,7 +362,7 @@ function LiveTradingPanel({ strategy, state, onChange }) {
           {liquidate && liquidationPreview && !liquidationLoading && (
             <div style={{ marginTop: 12, padding: 12, background: '#FFFFFF', borderRadius: 8 }}>
               {liquidationPreview.errorMessage ? (
-                <div style={{ color: '#991B1B', fontSize: '0.85rem' }}>
+                <div style={{ color: 'var(--up)', fontSize: '0.85rem' }}>
                   ⚠ {liquidationPreview.errorMessage}
                 </div>
               ) : liquidationPreview.orders?.length > 0 ? (
@@ -372,15 +372,15 @@ function LiveTradingPanel({ strategy, state, onChange }) {
                   </b>
                   <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {liquidationPreview.orders.map((o, i) => (
-                      <div key={i} style={{ fontSize: '0.85rem', color: '#059669' }}>
+                      <div key={i} style={{ fontSize: '0.85rem', color: 'var(--up)' }}>
                         🟢 매도 {o.name} ({o.symbol}) × {fmtQty(o.quantity)}
-                        {o.price > 0 && <span style={{ color: '#6B7280' }}> @ {fmtKrw(o.price)}</span>}
+                        {o.price > 0 && <span style={{ color: 'var(--tx-2)' }}> @ {fmtKrw(o.price)}</span>}
                       </div>
                     ))}
                   </div>
                 </>
               ) : (
-                <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--tx-2)' }}>
                   청산 대상 없음 — 이 전략 유니버스에서 보유 중인 종목이 없습니다.
                 </div>
               )}

@@ -56,13 +56,13 @@ export default function ResultPanel({ result }) {
         </div>
         <div className="stat-box">
           <div className="stat-label">현재가치</div>
-          <div className="stat-value" style={{ color: isPositive ? '#059669' : '#dc2626' }}>
+          <div className="stat-value" style={{ color: isPositive ? 'var(--up)' : 'var(--down)' }}>
             {formatNumber(result.currentValue, moneyCurrency)}
           </div>
         </div>
         <div className="stat-box">
           <div className="stat-label">수익 / 손실</div>
-          <div className="stat-value" style={{ color: isPositive ? '#059669' : '#dc2626' }}>
+          <div className="stat-value" style={{ color: isPositive ? 'var(--up)' : 'var(--down)' }}>
             {isPositive ? '+' : ''}{formatNumber(result.profitLoss, moneyCurrency)}
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function ResultPanel({ result }) {
             </div>
             <div className="stat-box">
               <div className="stat-label">현재가</div>
-              <div className="stat-value" style={{ color: isPositive ? '#059669' : '#dc2626' }}>
+              <div className="stat-value" style={{ color: isPositive ? 'var(--up)' : 'var(--down)' }}>
                 {formatNumber(result.currentPrice, moneyCurrency)}
               </div>
             </div>

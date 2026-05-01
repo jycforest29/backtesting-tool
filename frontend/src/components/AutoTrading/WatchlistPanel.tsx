@@ -78,7 +78,7 @@ export function WatchlistPanel({ quotes, connected, onAdd, onRemove, onRefresh }
           </div>
           {quotes.map(p => {
             const pos = parseFloat(p.change) >= 0
-            const color = pos ? '#059669' : '#dc2626'
+            const color = pos ? 'var(--up)' : 'var(--down)'
             return (
               <div key={p.symbol + p.currency} className={`live-table-row ${p.flash ? 'flash' : ''}`}>
                 <span className="live-stock-info">
@@ -88,7 +88,7 @@ export function WatchlistPanel({ quotes, connected, onAdd, onRemove, onRefresh }
                 <span className="live-price">{fmtMoney(p.price, p.currency)}</span>
                 <span style={{ color, fontWeight: 600 }}>{fmtDelta(p.change, p.currency)}</span>
                 <span className="live-change-badge"
-                  style={{ background: pos ? '#ECFDF5' : '#FEF2F2', color }}>
+                  style={{ background: pos ? '#ECFDF5' : 'var(--up-soft)', color }}>
                   {pos ? '+' : ''}{parseFloat(p.changePercent).toFixed(2)}%
                 </span>
                 <button className="live-remove-btn" onClick={() => onRemove(p)}>&times;</button>

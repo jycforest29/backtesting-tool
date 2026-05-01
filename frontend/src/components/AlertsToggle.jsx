@@ -70,15 +70,15 @@ export default function AlertsToggle() {
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 8,
         padding: '6px 12px', borderRadius: 999,
-        border: '1px solid ' + (enabled ? '#A7F3D0' : '#E5E7EB'),
-        background: enabled ? '#ECFDF5' : '#F9FAFB',
-        color: enabled ? '#065F46' : '#6B7280',
+        border: '1px solid ' + (enabled ? '#A7F3D0' : 'var(--line)'),
+        background: enabled ? '#ECFDF5' : 'var(--bg-3)',
+        color: enabled ? 'var(--ok)' : 'var(--tx-2)',
         fontSize: '0.82rem', fontWeight: 600,
         cursor: 'pointer',
       }}>
       <span style={{
         width: 8, height: 8, borderRadius: '50%',
-        background: connected ? (enabled ? '#10B981' : '#9CA3AF') : '#F59E0B',
+        background: connected ? (enabled ? 'var(--ok)' : 'var(--tx-3)') : '#F59E0B',
       }} />
       거래량 알림 {enabled ? 'ON' : 'OFF'}
     </button>

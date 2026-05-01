@@ -17,20 +17,19 @@ export function BalancePanel({ refreshKey }: Props) {
       <div className="section-header">
         <h3 style={{ margin: 0 }}>잔고</h3>
         <div style={{ display: 'flex', gap: 8 }}>
-          <select value={market} onChange={e => setMarket(e.target.value as Market)}
-            style={{ padding: '6px 10px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: '0.85rem' }}>
+          <select value={market} onChange={e => setMarket(e.target.value as Market)} style={{ width: 'auto' }}>
             {MARKETS.map(x => <option key={x.value} value={x.value}>{x.label}</option>)}
           </select>
           <button type="button" className="btn-refresh" onClick={reload}>새로고침</button>
         </div>
       </div>
 
-      {loading && <p style={{ color: '#6b7280' }}>조회 중...</p>}
+      {loading && <p style={{ color: 'var(--tx-2)' }}>조회 중...</p>}
       {error && (
         error.dependencyMissing ? (
           // 의존성 미설정 — 운영자 안내성 메시지. 토스트가 아니라 inline 배너 1회.
           <div className="info-banner" style={{
-            background: '#FEF3C7', color: '#92400E', padding: '10px 14px',
+            background: 'var(--warn-soft)', color: 'var(--warn)', padding: '10px 14px',
             borderRadius: 8, fontSize: '0.85rem', marginTop: 8,
           }}>
             ⚠ {error.message}
@@ -52,13 +51,13 @@ export function BalancePanel({ refreshKey }: Props) {
             </div>
             <div className="risk-card">
               <div className="risk-label">손익</div>
-              <div className="risk-value" style={{ color: parseFloat(balance.totalPnl) >= 0 ? '#059669' : '#dc2626' }}>
+              <div className="risk-value" style={{ color: parseFloat(balance.totalPnl) >= 0 ? 'var(--up)' : 'var(--down)' }}>
                 {fmtMoney(balance.totalPnl, curr)}
               </div>
             </div>
             <div className="risk-card">
               <div className="risk-label">수익률</div>
-              <div className="risk-value" style={{ color: parseFloat(balance.totalPnlRate) >= 0 ? '#059669' : '#dc2626' }}>
+              <div className="risk-value" style={{ color: parseFloat(balance.totalPnlRate) >= 0 ? 'var(--up)' : 'var(--down)' }}>
                 {parseFloat(balance.totalPnlRate || '0').toFixed(2)}%
               </div>
             </div>
@@ -75,20 +74,20 @@ export function BalancePanel({ refreshKey }: Props) {
                   style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr' }}>
                   <span>
                     <strong>{h.symbol}</strong>
-                    {h.name && <span style={{ color: '#6b7280', marginLeft: 8 }}>{h.name}</span>}
+                    {h.name && <span style={{ color: 'var(--tx-2)', marginLeft: 8 }}>{h.name}</span>}
                   </span>
                   <span>{h.quantity.toLocaleString()}</span>
                   <span>{fmtMoney(h.avgPrice, curr)}</span>
                   <span>{fmtMoney(h.currentPrice, curr)}</span>
                   <span>{fmtMoney(h.evalAmount, curr)}</span>
-                  <span style={{ color: parseFloat(h.pnl) >= 0 ? '#059669' : '#dc2626', fontWeight: 700 }}>
+                  <span style={{ color: parseFloat(h.pnl) >= 0 ? 'var(--up)' : 'var(--down)', fontWeight: 700 }}>
                     {parseFloat(h.pnlRate || '0').toFixed(2)}%
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p style={{ color: '#6b7280', marginTop: 12 }}>보유 종목이 없습니다.</p>
+            <p style={{ color: 'var(--tx-2)', marginTop: 12 }}>보유 종목이 없습니다.</p>
           )}
         </>
       )}

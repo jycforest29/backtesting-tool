@@ -35,7 +35,7 @@ export default class ErrorBoundary extends Component {
     return (
       <div role="alert" className="error-boundary">
         <h2>화면 렌더링 중 오류가 발생했습니다</h2>
-        <pre style={{ whiteSpace: 'pre-wrap', color: '#dc2626' }}>{String(error?.message ?? error)}</pre>
+        <pre style={{ whiteSpace: 'pre-wrap', color: 'var(--down)' }}>{String(error?.message ?? error)}</pre>
         <button type="button" onClick={this.reset} className="btn-submit" style={{ marginTop: 12 }}>
           다시 시도
         </button>

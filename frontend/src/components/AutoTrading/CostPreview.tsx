@@ -52,7 +52,7 @@ export function CostPreview({ market, side, orderType, quantity, price }: Props)
 
   if (!preview) return null
 
-  const row = (label: string, value: number, sign = '', color = '#374151') => (
+  const row = (label: string, value: number, sign = '', color = 'var(--tx-0)') => (
     <div style={{
       display: 'flex', justifyContent: 'space-between',
       fontSize: '0.85rem', color, padding: '4px 0',
@@ -65,8 +65,8 @@ export function CostPreview({ market, side, orderType, quantity, price }: Props)
   if (preview.market) {
     return (
       <div style={{
-        background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10,
-        padding: 14, marginTop: 12, fontSize: '0.85rem', color: '#6B7280',
+        background: 'var(--bg-3)', border: '1px solid #E5E7EB', borderRadius: 10,
+        padding: 14, marginTop: 12, fontSize: '0.85rem', color: 'var(--tx-2)',
       }}>
         시장가 주문은 체결가가 정해지지 않아 예상 비용을 계산할 수 없습니다.
       </div>
@@ -75,28 +75,28 @@ export function CostPreview({ market, side, orderType, quantity, price }: Props)
 
   return (
     <div style={{
-      background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10,
+      background: 'var(--bg-3)', border: '1px solid #E5E7EB', borderRadius: 10,
       padding: 14, marginTop: 12,
     }}>
-      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6B7280', marginBottom: 6 }}>
+      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--tx-2)', marginBottom: 6 }}>
         예상 비용 (한투 온라인 기준 · 실제와 차이 있을 수 있음)
       </div>
       {row('주문 대금', preview.amount!)}
-      {row(`수수료 (${rates.commissionRate}%)`, preview.commission!, '-', '#DC2626')}
+      {row(`수수료 (${rates.commissionRate}%)`, preview.commission!, '-', 'var(--down)')}
       {rates.taxOn === side && rates.taxRate > 0 &&
-        row(`${rates.taxLabel} (${rates.taxRate}%)`, preview.tax!, '-', '#DC2626')}
+        row(`${rates.taxLabel} (${rates.taxRate}%)`, preview.tax!, '-', 'var(--down)')}
       <div style={{
         borderTop: '1px dashed #D1D5DB', marginTop: 6, paddingTop: 6,
         display: 'flex', justifyContent: 'space-between',
         fontSize: '0.92rem', fontWeight: 700,
       }}>
         <span>{side === 'BUY' ? '총 결제금액' : '순 체결금액'}</span>
-        <span style={{ color: side === 'BUY' ? '#DC2626' : '#059669' }}>
+        <span style={{ color: side === 'BUY' ? 'var(--down)' : 'var(--up)' }}>
           {fmtMoney(side === 'BUY' ? preview.netBuy! : preview.netSell!, currency)}
         </span>
       </div>
       {market !== 'KR_STOCK' && (
-        <div style={{ fontSize: '0.72rem', color: '#9CA3AF', marginTop: 6 }}>
+        <div style={{ fontSize: '0.72rem', color: 'var(--tx-3)', marginTop: 6 }}>
           ※ 환전수수료 · 연말 양도소득세(22%, 250만원 공제) 미포함
         </div>
       )}

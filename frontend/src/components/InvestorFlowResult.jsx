@@ -22,16 +22,16 @@ const fmtShares = (num) => {
 }
 
 const COLORS = {
-  individual: '#EF4444',
-  foreign: '#3B82F6',
-  institution: '#10B981',
+  individual: 'var(--danger)',
+  foreign: 'var(--accent)',
+  institution: 'var(--ok)',
   price: '#1E293B',
 }
 
 const SIGNAL_CONFIG = {
-  BULLISH: { label: '매집 신호 (BULLISH)', color: '#059669', bg: '#ECFDF5', desc: '외국인/기관이 사고 있는데 주가는 아직 반영 안 됨' },
-  BEARISH: { label: '분산 신호 (BEARISH)', color: '#DC2626', bg: '#FEF2F2', desc: '외국인/기관이 팔고 있는데 주가는 아직 버티는 중' },
-  NEUTRAL: { label: '중립', color: '#6B7280', bg: '#F8F9FB', desc: '매매동향과 주가 방향이 일치' },
+  BULLISH: { label: '매집 신호 (BULLISH)', color: 'var(--up)', bg: '#ECFDF5', desc: '외국인/기관이 사고 있는데 주가는 아직 반영 안 됨' },
+  BEARISH: { label: '분산 신호 (BEARISH)', color: 'var(--down)', bg: 'var(--up-soft)', desc: '외국인/기관이 팔고 있는데 주가는 아직 버티는 중' },
+  NEUTRAL: { label: '중립', color: 'var(--tx-2)', bg: '#F8F9FB', desc: '매매동향과 주가 방향이 일치' },
 }
 
 const BUYER_LABELS = {
@@ -122,12 +122,12 @@ export default function InvestorFlowResult({ result }) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 10 }} tickLine={false} minTickGap={40} />
-                <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} tickLine={false} axisLine={false}
+                <XAxis dataKey="date" tick={{ fill: 'var(--tx-3)', fontSize: 10 }} tickLine={false} minTickGap={40} />
+                <YAxis tick={{ fill: 'var(--tx-3)', fontSize: 11 }} tickLine={false} axisLine={false}
                   tickFormatter={v => fmtShares(v)} width={55} />
                 <Tooltip
                   contentStyle={{
-                    background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12,
+                    background: 'var(--bg-2)', border: '1px solid #e5e7eb', borderRadius: 12,
                     boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '0.82rem',
                   }}
                   formatter={(value, name) => [
@@ -151,15 +151,15 @@ export default function InvestorFlowResult({ result }) {
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartData} margin={{ top: 5, right: 60, bottom: 5, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 10 }} tickLine={false} minTickGap={40} />
-                <YAxis yAxisId="cum" tick={{ fill: '#9ca3af', fontSize: 11 }} tickLine={false} axisLine={false}
+                <XAxis dataKey="date" tick={{ fill: 'var(--tx-3)', fontSize: 10 }} tickLine={false} minTickGap={40} />
+                <YAxis yAxisId="cum" tick={{ fill: 'var(--tx-3)', fontSize: 11 }} tickLine={false} axisLine={false}
                   tickFormatter={v => fmtShares(v)} width={55} />
-                <YAxis yAxisId="price" orientation="right" tick={{ fill: '#9ca3af', fontSize: 11 }}
+                <YAxis yAxisId="price" orientation="right" tick={{ fill: 'var(--tx-3)', fontSize: 11 }}
                   tickLine={false} axisLine={false}
                   tickFormatter={v => v.toLocaleString() + '원'} width={70} />
                 <Tooltip
                   contentStyle={{
-                    background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12,
+                    background: 'var(--bg-2)', border: '1px solid #e5e7eb', borderRadius: 12,
                     boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '0.82rem',
                   }}
                   formatter={(value, name) => {

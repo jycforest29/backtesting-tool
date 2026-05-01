@@ -146,15 +146,15 @@ export function OrderForm({ paperTrading, onOrdered }: Props) {
 
         <button type="submit" className="btn-submit"
           disabled={submitting || !selected}
-          style={{ background: side === 'BUY' ? '#DC2626' : '#2563EB', marginTop: 14 }}>
+          style={{ background: side === 'BUY' ? 'var(--down)' : '#2563EB', marginTop: 14 }}>
           {submitting ? '전송 중...' : `${side === 'BUY' ? '매수' : '매도'} 주문 전송`}
         </button>
       </form>
       {msg && (
         <div className={msg.type === 'ok' ? 'success-msg' : 'error-msg'}
           style={{ marginTop: 12,
-            background: msg.type === 'ok' ? '#ECFDF5' : '#FEF2F2',
-            color: msg.type === 'ok' ? '#059669' : '#DC2626',
+            background: msg.type === 'ok' ? '#ECFDF5' : 'var(--up-soft)',
+            color: msg.type === 'ok' ? 'var(--up)' : 'var(--down)',
             padding: '10px 14px', borderRadius: 10 }}>
           {msg.text}
         </div>

@@ -24,11 +24,11 @@ const STATUS_LABEL = {
 const STATUS_COLOR = {
   PENDING_ENTRY: '#7C3AED',
   PENDING_FILL: '#D97706',
-  ACTIVE: '#059669',
+  ACTIVE: 'var(--up)',
   PARTIALLY_CLOSED: '#2563EB',
-  CLOSED: '#6B7280',
-  CANCELLED: '#9CA3AF',
-  FAILED: '#DC2626',
+  CLOSED: 'var(--tx-2)',
+  CANCELLED: 'var(--tx-3)',
+  FAILED: 'var(--down)',
 }
 
 const ENTRY_TYPE_LABEL = {
@@ -53,14 +53,14 @@ function TakeProfitLegRow({ idx, leg, onChange, onRemove, totalQty }) {
       gap: 12,
       alignItems: 'center',
       padding: '10px 12px',
-      background: '#fff',
+      background: 'var(--bg-2)',
       border: '1px solid #E5E7EB',
       borderRadius: 10,
       marginBottom: 8,
     }}>
       <div style={{
         width: 32, height: 32, borderRadius: '50%',
-        background: '#ECFDF5', color: '#059669',
+        background: '#ECFDF5', color: 'var(--up)',
         fontWeight: 700, fontSize: '0.85rem',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
@@ -70,12 +70,12 @@ function TakeProfitLegRow({ idx, leg, onChange, onRemove, totalQty }) {
       <div>
         <div style={legLabel}>목표 상승률</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ color: '#059669', fontWeight: 600 }}>+</span>
+          <span style={{ color: 'var(--up)', fontWeight: 600 }}>+</span>
           <input type="number" step="0.1" min="0.1"
             value={leg.percent}
             onChange={e => onChange(idx, 'percent', e.target.value)}
             style={legInput} />
-          <span style={{ color: '#6B7280', fontSize: '0.9rem' }}>%</span>
+          <span style={{ color: 'var(--tx-2)', fontSize: '0.9rem' }}>%</span>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ function TakeProfitLegRow({ idx, leg, onChange, onRemove, totalQty }) {
         <div style={legLabel}>
           매도 비율
           {plannedShares !== null && (
-            <span style={{ color: '#9CA3AF', marginLeft: 6 }}>
+            <span style={{ color: 'var(--tx-3)', marginLeft: 6 }}>
               ≈ {plannedShares}주
             </span>
           )}
@@ -93,7 +93,7 @@ function TakeProfitLegRow({ idx, leg, onChange, onRemove, totalQty }) {
             value={leg.quantityFraction}
             onChange={e => onChange(idx, 'quantityFraction', e.target.value)}
             style={legInput} />
-          <span style={{ color: '#6B7280', fontSize: '0.9rem' }}>
+          <span style={{ color: 'var(--tx-2)', fontSize: '0.9rem' }}>
             ({(leg.quantityFraction * 100).toFixed(0)}%)
           </span>
         </div>
@@ -104,7 +104,7 @@ function TakeProfitLegRow({ idx, leg, onChange, onRemove, totalQty }) {
         style={{
           width: 32, height: 32, borderRadius: 8,
           background: 'transparent', border: '1px solid #E5E7EB',
-          color: '#9CA3AF', cursor: 'pointer', fontSize: '1rem',
+          color: 'var(--tx-3)', cursor: 'pointer', fontSize: '1rem',
         }}>
         ×
       </button>
@@ -113,7 +113,7 @@ function TakeProfitLegRow({ idx, leg, onChange, onRemove, totalQty }) {
 }
 
 const legLabel = {
-  fontSize: '0.72rem', color: '#6B7280', marginBottom: 4,
+  fontSize: '0.72rem', color: 'var(--tx-2)', marginBottom: 4,
   letterSpacing: '0.02em', textTransform: 'uppercase',
 }
 const legInput = {
@@ -149,17 +149,17 @@ function TakeProfitSection({ tp, setTp, totalQty }) {
         marginBottom: 12,
       }}>
         <div>
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: '#065F46' }}>
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--ok)' }}>
             익절 단계
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#6B7280', marginTop: 2 }}>
+          <div style={{ fontSize: '0.78rem', color: 'var(--tx-2)', marginTop: 2 }}>
             지정한 상승률 도달 시 해당 수량만큼 시장가 매도
           </div>
         </div>
         <div style={{
           padding: '6px 12px', borderRadius: 999,
-          background: sumValid ? '#D1FAE5' : '#FEE2E2',
-          color: sumValid ? '#065F46' : '#B91C1C',
+          background: sumValid ? '#D1FAE5' : 'var(--up-soft)',
+          color: sumValid ? 'var(--ok)' : '#B91C1C',
           fontSize: '0.8rem', fontWeight: 600,
         }}>
           합계 {(fractionSum * 100).toFixed(0)}% {sumValid && '✓'}
@@ -181,7 +181,7 @@ function TakeProfitSection({ tp, setTp, totalQty }) {
 
 const btnGhost = {
   padding: '8px 14px', fontSize: '0.85rem',
-  background: '#fff', color: '#374151',
+  background: 'var(--bg-2)', color: 'var(--tx-0)',
   border: '1px solid #D1D5DB', borderRadius: 8,
   cursor: 'pointer', fontWeight: 500,
 }
@@ -202,8 +202,8 @@ function HoldingsPicker({ holdings, loading, error, onRefresh, onPick, selectedS
         marginBottom: 8,
       }}>
         <div>
-          <div style={{ fontWeight: 700, color: '#075985' }}>내 보유 종목 (국내)</div>
-          <div style={{ fontSize: '0.78rem', color: '#6B7280', marginTop: 2 }}>
+          <div style={{ fontWeight: 700, color: 'var(--accent)' }}>내 보유 종목 (국내)</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--tx-2)', marginTop: 2 }}>
             선택 시 종목 · 수량이 자동 입력됩니다.
           </div>
         </div>
@@ -215,18 +215,18 @@ function HoldingsPicker({ holdings, loading, error, onRefresh, onPick, selectedS
       {error && (
         // 의존성 미설정/일반 오류 모두 inline 으로. 자동 reload 로 토스트 폭발했던 기존 동작 대체.
         <div style={{
-          background: error.dependencyMissing ? '#FEF3C7' : '#FEE2E2',
-          color: error.dependencyMissing ? '#92400E' : '#991B1B',
+          background: error.dependencyMissing ? 'var(--warn-soft)' : 'var(--up-soft)',
+          color: error.dependencyMissing ? '#92400E' : 'var(--up)',
           padding: '10px 14px', borderRadius: 8, fontSize: '0.85rem',
         }}>
           {error.dependencyMissing ? '⚠ ' : '✗ '}{error.message}
         </div>
       )}
       {!error && loading && holdings == null && (
-        <div style={{ color: '#9CA3AF', padding: 12 }}>잔고 불러오는 중...</div>
+        <div style={{ color: 'var(--tx-3)', padding: 12 }}>잔고 불러오는 중...</div>
       )}
       {!error && holdings != null && holdings.length === 0 && (
-        <div style={{ color: '#9CA3AF', padding: 12 }}>
+        <div style={{ color: 'var(--tx-3)', padding: 12 }}>
           보유 중인 국내 주식이 없습니다.
         </div>
       )}
@@ -234,7 +234,7 @@ function HoldingsPicker({ holdings, loading, error, onRefresh, onPick, selectedS
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 280, overflowY: 'auto' }}>
           {holdings.map(h => {
             const active = h.symbol === selectedSymbol
-            const pnlColor = Number(h.pnl) >= 0 ? '#059669' : '#DC2626'
+            const pnlColor = Number(h.pnl) >= 0 ? 'var(--up)' : 'var(--down)'
             return (
               <button
                 type="button"
@@ -246,7 +246,7 @@ function HoldingsPicker({ holdings, loading, error, onRefresh, onPick, selectedS
                   gap: 10,
                   alignItems: 'center',
                   padding: '10px 12px',
-                  background: active ? '#E0F2FE' : '#fff',
+                  background: active ? '#E0F2FE' : 'var(--bg-2)',
                   border: active ? '2px solid #0284C7' : '1px solid #E5E7EB',
                   borderRadius: 8,
                   cursor: 'pointer',
@@ -257,12 +257,12 @@ function HoldingsPicker({ holdings, loading, error, onRefresh, onPick, selectedS
               >
                 <div>
                   <div style={{ fontWeight: 700 }}>{h.name || h.symbol}</div>
-                  <div style={{ color: '#6B7280', fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                  <div style={{ color: 'var(--tx-2)', fontSize: '0.75rem', fontFamily: 'monospace' }}>
                     {h.symbol}
                   </div>
                 </div>
-                <div style={{ color: '#374151' }}>{fmtQty(h.quantity, '주')}</div>
-                <div style={{ color: '#6B7280' }}>
+                <div style={{ color: 'var(--tx-0)' }}>{fmtQty(h.quantity, '주')}</div>
+                <div style={{ color: 'var(--tx-2)' }}>
                   평단 {fmtInt(h.avgPrice)}
                 </div>
                 <div style={{ color: pnlColor, textAlign: 'right', fontWeight: 600 }}>
@@ -396,10 +396,10 @@ function OrderForm({ onRegistered }) {
     <div className="form-card">
       <div style={{ marginBottom: 4 }}>
         <h3 style={{ margin: 0 }}>자동매매 주문 등록</h3>
-        <p style={{ color: '#6B7280', fontSize: '0.85rem', margin: '4px 0 16px' }}>
+        <p style={{ color: 'var(--tx-2)', fontSize: '0.85rem', margin: '4px 0 16px' }}>
           국내 단타 전용. 본주문 체결 확인 후 실시간 감시 → 손절가/익절가 도달 시 자동 시장가 매도.
           <br />
-          <span style={{ color: '#9CA3AF' }}>
+          <span style={{ color: 'var(--tx-3)' }}>
             ※ 신규 매수 모드는 <b>체결 평균가</b>, <b>이미 보유 중</b> 모드는 KIS 잔고 <b>평단가(또는 입력한 기준가)</b> 기준으로 손절/익절가 계산.
           </span>
         </p>
@@ -442,7 +442,7 @@ function OrderForm({ onRegistered }) {
                 value={selected ? `${selected.name || ''} (${selected.symbol})` : ''}
                 placeholder="위 보유 목록에서 선택"
                 readOnly
-                style={{ background: '#F9FAFB', color: '#374151' }}
+                style={{ background: 'var(--bg-3)', color: 'var(--tx-0)' }}
               />
             ) : (
               <SymbolSearchInput market="KR_STOCK" selected={selected}
@@ -473,7 +473,7 @@ function OrderForm({ onRegistered }) {
           {isExistingHolding && (
             <div className="form-group" style={{ flex: 1 }}>
               <label>
-                손절/익절 기준가 (원) <span style={{ color: '#9CA3AF', fontWeight: 400, fontSize: '0.78rem' }}>
+                손절/익절 기준가 (원) <span style={{ color: 'var(--tx-3)', fontWeight: 400, fontSize: '0.78rem' }}>
                   비워두면 평단가 {pickedAvgPrice ? `(${fmtInt(pickedAvgPrice)})` : ''} 사용
                 </span>
               </label>
@@ -502,10 +502,10 @@ function OrderForm({ onRegistered }) {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#991B1B' }}>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--up)' }}>
                 손절 기준
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#6B7280', marginTop: 2 }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--tx-2)', marginTop: 2 }}>
                 평단가 대비 하락률. 전량 시장가 매도.
               </div>
             </div>
@@ -516,10 +516,10 @@ function OrderForm({ onRegistered }) {
                   width: 88, padding: '8px 12px',
                   border: '1px solid #FECACA', borderRadius: 8,
                   fontSize: '1rem', fontWeight: 700,
-                  color: '#991B1B', textAlign: 'right',
-                  background: '#fff',
+                  color: 'var(--up)', textAlign: 'right',
+                  background: 'var(--bg-2)',
                 }} />
-              <span style={{ color: '#991B1B', fontWeight: 600 }}>%</span>
+              <span style={{ color: 'var(--up)', fontWeight: 600 }}>%</span>
             </div>
           </div>
         </div>
@@ -546,7 +546,7 @@ function OrderForm({ onRegistered }) {
 
 function PositionsList({ positions, onCancel }) {
   if (!positions.length) {
-    return <div className="form-card" style={{ color: '#9CA3AF', textAlign: 'center', padding: 32 }}>
+    return <div className="form-card" style={{ color: 'var(--tx-3)', textAlign: 'center', padding: 32 }}>
       등록된 포지션이 없습니다.
     </div>
   }
@@ -556,7 +556,7 @@ function PositionsList({ positions, onCancel }) {
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
           <thead>
-            <tr style={{ background: '#F3F4F6', textAlign: 'left' }}>
+            <tr style={{ background: 'var(--bg-3)', textAlign: 'left' }}>
               <th style={th}>종목</th>
               <th style={th}>상태</th>
               <th style={th}>진입 방식</th>
@@ -575,9 +575,9 @@ function PositionsList({ positions, onCancel }) {
                   <span style={{ color: STATUS_COLOR[p.status], fontWeight: 600 }}>
                     {STATUS_LABEL[p.status] || p.status}
                   </span>
-                  {p.closeReason && <div style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{p.closeReason}</div>}
+                  {p.closeReason && <div style={{ fontSize: '0.75rem', color: 'var(--tx-3)' }}>{p.closeReason}</div>}
                   {p.lastBuyFailReason && p.status === 'PENDING_ENTRY' && (
-                    <div style={{ fontSize: '0.72rem', color: '#DC2626', marginTop: 2 }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--down)', marginTop: 2 }}>
                       {p.lastBuyFailReason} {p.buyAttempts > 0 && `(${p.buyAttempts}회 재시도)`}
                     </div>
                   )}
@@ -585,7 +585,7 @@ function PositionsList({ positions, onCancel }) {
                 <td style={td}>
                   <div style={{ fontSize: '0.82rem' }}>{ENTRY_TYPE_LABEL[p.entryType] || p.entryType}</div>
                   {p.triggerPrice && (
-                    <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--tx-2)' }}>
                       트리거 {Number(p.triggerPrice).toLocaleString()}원
                     </div>
                   )}
@@ -597,7 +597,7 @@ function PositionsList({ positions, onCancel }) {
                   {p.takeProfit?.map((l, i) => (
                     <div key={i} style={{
                       fontSize: '0.78rem',
-                      color: l.triggered ? '#059669' : '#6B7280',
+                      color: l.triggered ? 'var(--up)' : 'var(--tx-2)',
                     }}>
                       +{l.percent}% {l.triggerPrice && `@${fmtInt(l.triggerPrice)}`}
                       {' '}({fmtQty(l.executedQuantity)}/{fmtQty(l.plannedQuantity)}) {l.triggered && '✓'}
@@ -609,7 +609,7 @@ function PositionsList({ positions, onCancel }) {
                     <button onClick={() => onCancel(p.id)}
                       style={{
                         padding: '4px 8px', fontSize: '0.8rem',
-                        background: '#FEE2E2', color: '#B91C1C', border: 'none',
+                        background: 'var(--up-soft)', color: '#B91C1C', border: 'none',
                         borderRadius: 4, cursor: 'pointer',
                       }}>
                       취소

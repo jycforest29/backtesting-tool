@@ -33,7 +33,7 @@ function PortfolioChart({ data, dcaEnabled }) {
   const isPositive = chartData.length > 1 &&
     chartData[chartData.length - 1].value >= chartData[chartData.length - 1].invested
 
-  const valueColor = isPositive ? '#059669' : '#dc2626'
+  const valueColor = isPositive ? 'var(--up)' : 'var(--down)'
 
   return (
     <div className="chart-container" style={{ height: 400 }}>
@@ -50,17 +50,17 @@ function PortfolioChart({ data, dcaEnabled }) {
             </linearGradient>
           </defs>
           <XAxis
-            dataKey="date" tick={{ fill: '#9ca3af', fontSize: 11 }}
-            tickLine={false} axisLine={{ stroke: '#e5e7eb' }} minTickGap={60}
+            dataKey="date" tick={{ fill: 'var(--tx-3)', fontSize: 11 }}
+            tickLine={false} axisLine={{ stroke: 'var(--line)' }} minTickGap={60}
           />
           <YAxis
-            tick={{ fill: '#9ca3af', fontSize: 11 }} tickLine={false} axisLine={false}
+            tick={{ fill: 'var(--tx-3)', fontSize: 11 }} tickLine={false} axisLine={false}
             tickFormatter={v => '$' + (v / 1000).toFixed(0) + 'k'}
             width={65}
           />
           <Tooltip
             contentStyle={{
-              background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12,
+              background: 'var(--bg-2)', border: '1px solid #e5e7eb', borderRadius: 12,
               boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '0.85rem',
             }}
             formatter={(value, name) => [
@@ -81,7 +81,7 @@ function PortfolioChart({ data, dcaEnabled }) {
           <Area
             type="monotone" dataKey="value" stroke={valueColor} strokeWidth={2}
             fill="url(#valueGrad)" dot={false}
-            activeDot={{ r: 4, fill: valueColor, stroke: '#fff', strokeWidth: 2 }}
+            activeDot={{ r: 4, fill: valueColor, stroke: 'var(--bg-2)', strokeWidth: 2 }}
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -120,13 +120,13 @@ export default function PortfolioResult({ result }) {
         </div>
         <div className="stat-box">
           <div className="stat-label">현재 가치</div>
-          <div className="stat-value" style={{ color: isPositive ? '#059669' : '#dc2626' }}>
+          <div className="stat-value" style={{ color: isPositive ? 'var(--up)' : 'var(--down)' }}>
             {fmt(r.finalValue)}
           </div>
         </div>
         <div className="stat-box">
           <div className="stat-label">수익 / 손실</div>
-          <div className="stat-value" style={{ color: isPositive ? '#059669' : '#dc2626' }}>
+          <div className="stat-value" style={{ color: isPositive ? 'var(--up)' : 'var(--down)' }}>
             {(isPositive ? '+' : '') + fmt(r.profitLoss)}
           </div>
         </div>
@@ -139,13 +139,13 @@ export default function PortfolioResult({ result }) {
           label="Sharpe Ratio"
           value={m.sharpeRatio}
           detail={parseFloat(m.sharpeRatio) >= 1 ? 'Good' : parseFloat(m.sharpeRatio) >= 0.5 ? 'Moderate' : 'Low'}
-          color={parseFloat(m.sharpeRatio) >= 1 ? '#059669' : parseFloat(m.sharpeRatio) >= 0.5 ? '#d97706' : '#dc2626'}
+          color={parseFloat(m.sharpeRatio) >= 1 ? 'var(--up)' : parseFloat(m.sharpeRatio) >= 0.5 ? '#d97706' : 'var(--down)'}
         />
         <RiskCard
           label="Sortino Ratio"
           value={m.sortinoRatio}
           detail="하방 리스크 대비 수익"
-          color={parseFloat(m.sortinoRatio) >= 1 ? '#059669' : '#d97706'}
+          color={parseFloat(m.sortinoRatio) >= 1 ? 'var(--up)' : '#d97706'}
         />
         <RiskCard
           label="MDD (최대 낙폭)"
@@ -157,18 +157,18 @@ export default function PortfolioResult({ result }) {
           label="연간 변동성"
           value={pct(m.annualVolatility)}
           detail={parseFloat(m.annualVolatility) < 15 ? 'Low Risk' : parseFloat(m.annualVolatility) < 25 ? 'Medium' : 'High Risk'}
-          color={parseFloat(m.annualVolatility) < 15 ? '#059669' : parseFloat(m.annualVolatility) < 25 ? '#d97706' : '#dc2626'}
+          color={parseFloat(m.annualVolatility) < 15 ? 'var(--up)' : parseFloat(m.annualVolatility) < 25 ? '#d97706' : 'var(--down)'}
         />
         <RiskCard
           label="연간 수익률"
           value={pct(m.annualReturn)}
-          color={parseFloat(m.annualReturn) >= 0 ? '#059669' : '#dc2626'}
+          color={parseFloat(m.annualReturn) >= 0 ? 'var(--up)' : 'var(--down)'}
         />
         <RiskCard
           label="CAGR"
           value={pct(m.cagr)}
           detail="연복리 수익률"
-          color={parseFloat(m.cagr) >= 0 ? '#059669' : '#dc2626'}
+          color={parseFloat(m.cagr) >= 0 ? 'var(--up)' : 'var(--down)'}
         />
       </div>
 
@@ -191,7 +191,7 @@ export default function PortfolioResult({ result }) {
               </span>
               <span>{ap.weight}%</span>
               <span>{fmt(ap.allocated)}</span>
-              <span style={{ color: apPositive ? '#059669' : '#dc2626', fontWeight: 700 }}>
+              <span style={{ color: apPositive ? 'var(--up)' : 'var(--down)', fontWeight: 700 }}>
                 {pct(ap.returnPercent)}
               </span>
             </div>
@@ -219,7 +219,7 @@ export default function PortfolioResult({ result }) {
             </div>
             <div className="asset-perf-row" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr', background: '#f5f3ff' }}>
               <span style={{ fontWeight: 700 }}>My Portfolio</span>
-              <span style={{ color: isPositive ? '#059669' : '#dc2626', fontWeight: 700 }}>{pct(r.totalReturnPercent)}</span>
+              <span style={{ color: isPositive ? 'var(--up)' : 'var(--down)', fontWeight: 700 }}>{pct(r.totalReturnPercent)}</span>
               <span style={{ fontWeight: 600 }}>{pct(m.cagr)}</span>
               <span style={{ fontWeight: 600 }}>{fmt(r.finalValue)}</span>
             </div>
@@ -228,7 +228,7 @@ export default function PortfolioResult({ result }) {
               return (
                 <div key={i} className="asset-perf-row" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }}>
                   <span>{b.name}</span>
-                  <span style={{ color: bPositive ? '#059669' : '#dc2626', fontWeight: 700 }}>{pct(b.totalReturn)}</span>
+                  <span style={{ color: bPositive ? 'var(--up)' : 'var(--down)', fontWeight: 700 }}>{pct(b.totalReturn)}</span>
                   <span>{pct(b.cagr)}</span>
                   <span>{fmt(b.finalValue)}</span>
                 </div>
@@ -266,13 +266,13 @@ export default function PortfolioResult({ result }) {
             <div className="tax-result-item net">
               <span className="tax-result-label">세후 순이익</span>
               <span className="tax-result-value" style={{
-                color: parseFloat(r.taxFeeResult.netProfit) >= 0 ? '#059669' : '#dc2626'
+                color: parseFloat(r.taxFeeResult.netProfit) >= 0 ? 'var(--up)' : 'var(--down)'
               }}>{fmt(r.taxFeeResult.netProfit)}</span>
             </div>
             <div className="tax-result-item net">
               <span className="tax-result-label">세후 수익률</span>
               <span className="tax-result-value" style={{
-                color: parseFloat(r.taxFeeResult.netReturnPercent) >= 0 ? '#059669' : '#dc2626'
+                color: parseFloat(r.taxFeeResult.netReturnPercent) >= 0 ? 'var(--up)' : 'var(--down)'
               }}>{pct(r.taxFeeResult.netReturnPercent)}</span>
             </div>
             <div className="tax-result-item">
@@ -286,7 +286,7 @@ export default function PortfolioResult({ result }) {
   )
 }
 
-const BENCHMARK_COLORS = ['#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16']
+const BENCHMARK_COLORS = ['#8b5cf6', '#f59e0b', 'var(--danger)', '#06b6d4', '#84cc16']
 
 function BenchmarkChart({ portfolio, benchmarks, portfolioName }) {
   // Merge portfolio and benchmark data by date
@@ -312,12 +312,12 @@ function BenchmarkChart({ portfolio, benchmarks, portfolioName }) {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-          <XAxis dataKey="date" tick={{ fill: '#9ca3af', fontSize: 11 }} tickLine={false} minTickGap={60} />
-          <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} tickLine={false} axisLine={false}
+          <XAxis dataKey="date" tick={{ fill: 'var(--tx-3)', fontSize: 11 }} tickLine={false} minTickGap={60} />
+          <YAxis tick={{ fill: 'var(--tx-3)', fontSize: 11 }} tickLine={false} axisLine={false}
             tickFormatter={v => '$' + (v / 1000).toFixed(0) + 'k'} width={65} />
           <Tooltip
             contentStyle={{
-              background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12,
+              background: 'var(--bg-2)', border: '1px solid #e5e7eb', borderRadius: 12,
               boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '0.82rem',
             }}
             formatter={(value, name) => {
