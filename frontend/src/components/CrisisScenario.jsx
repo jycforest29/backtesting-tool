@@ -12,9 +12,9 @@ const FACTORS = [
 ]
 
 const RISK_COLORS = {
-  LOW: { bg: '#ECFDF5', color: '#059669', label: 'LOW RISK' },
+  LOW: { bg: '#ECFDF5', color: 'var(--up)', label: 'LOW RISK' },
   MEDIUM: { bg: '#FFFBEB', color: '#D97706', label: 'MEDIUM RISK' },
-  HIGH: { bg: '#FEF2F2', color: '#DC2626', label: 'HIGH RISK' },
+  HIGH: { bg: 'var(--up-soft)', color: 'var(--down)', label: 'HIGH RISK' },
   CRITICAL: { bg: '#450A0A', color: '#FCA5A5', label: 'CRITICAL' },
 }
 
@@ -147,7 +147,7 @@ export default function CrisisScenario() {
 
         {/* Simple assets for stress test */}
         <details style={{ marginTop: 12 }}>
-          <summary style={{ cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600, color: '#6b7280' }}>
+          <summary style={{ cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600, color: 'var(--tx-2)' }}>
             포트폴리오 구성 수정
           </summary>
           <div style={{ marginTop: 8 }}>
@@ -160,7 +160,7 @@ export default function CrisisScenario() {
                     }}>
                     {ASSET_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
-                  <input style={{ flex: 1, background: '#f3f4f6', border: '1.5px solid transparent', borderRadius: 10, padding: '10px 12px', fontSize: '0.85rem', fontFamily: 'inherit' }}
+                  <input style={{ flex: 1, background: 'var(--bg-3)', border: '1.5px solid transparent', borderRadius: 10, padding: '10px 12px', fontSize: '0.85rem', fontFamily: 'inherit' }}
                     value={a.name} onChange={e => { const next = [...assets]; next[i] = { ...a, name: e.target.value }; setAssets(next) }} />
                   <div className="weight-input-wrapper">
                     <input type="number" className="weight-input" value={a.weight}
@@ -200,8 +200,8 @@ export default function CrisisScenario() {
           <div className="template-chips" style={{ marginBottom: 16 }}>
             {result.shocksApplied.map((s, i) => (
               <span key={i} className="template-chip" style={{
-                borderColor: parseFloat(s.shockPercent) < 0 ? '#EF4444' : '#10B981',
-                color: parseFloat(s.shockPercent) < 0 ? '#DC2626' : '#059669',
+                borderColor: parseFloat(s.shockPercent) < 0 ? 'var(--danger)' : 'var(--ok)',
+                color: parseFloat(s.shockPercent) < 0 ? 'var(--down)' : 'var(--up)',
                 cursor: 'default'
               }}>
                 {s.factor} {parseFloat(s.shockPercent) >= 0 ? '+' : ''}{s.shockPercent}%
@@ -217,13 +217,13 @@ export default function CrisisScenario() {
             </div>
             <div className="stat-box">
               <div className="stat-label">After</div>
-              <div className="stat-value" style={{ color: parseFloat(result.portfolioChangePercent) >= 0 ? '#059669' : '#dc2626' }}>
+              <div className="stat-value" style={{ color: parseFloat(result.portfolioChangePercent) >= 0 ? 'var(--up)' : 'var(--down)' }}>
                 {fmt(result.portfolioValueAfter)}
               </div>
             </div>
             <div className="stat-box">
               <div className="stat-label">Impact</div>
-              <div className="stat-value" style={{ color: parseFloat(result.portfolioChangePercent) >= 0 ? '#059669' : '#dc2626' }}>
+              <div className="stat-value" style={{ color: parseFloat(result.portfolioChangePercent) >= 0 ? 'var(--up)' : 'var(--down)' }}>
                 {parseFloat(result.portfolioChangePercent) >= 0 ? '+' : ''}{result.portfolioChangePercent}%
               </div>
             </div>
@@ -235,15 +235,19 @@ export default function CrisisScenario() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={result.assetImpacts} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 11 }} tickLine={false} />
-                <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} tickLine={false} axisLine={false}
-                  tickFormatter={v => v + '%'} />
+                <XAxis dataKey="name" tick={{ fill: 'var(--tx-2)', fontSize: 11 }} tickLine={false} />
+                <YAxis tick={{ fill: 'var(--tx-3)', fontSize: 11 }} tickLine={false} axisLine={false}
+                  tickFormatter={v => v + '%'}
+                  domain={[
+                    (dmin) => Math.floor((Math.min(0, dmin) - 5) / 10) * 10,
+                    (dmax) => Math.max(0, Math.ceil(dmax / 10) * 10),
+                  ]} />
                 <Tooltip formatter={(v) => [v + '%', 'Impact']}
-                  contentStyle={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, fontSize: '0.85rem' }} />
+                  contentStyle={{ background: 'var(--bg-2)', border: '1px solid #e5e7eb', borderRadius: 12, fontSize: '0.85rem' }} />
                 <ReferenceLine y={0} stroke="#94a3b8" />
                 <Bar dataKey="changePercent" radius={[4, 4, 0, 0]}>
                   {result.assetImpacts.map((entry, i) => (
-                    <Cell key={i} fill={parseFloat(entry.changePercent) >= 0 ? '#10B981' : '#EF4444'} opacity={0.8} />
+                    <Cell key={i} fill={parseFloat(entry.changePercent) >= 0 ? 'var(--ok)' : 'var(--danger)'} opacity={0.8} />
                   ))}
                 </Bar>
               </BarChart>
@@ -261,7 +265,7 @@ export default function CrisisScenario() {
                 <span>{a.weight}%</span>
                 <span>{fmt(a.valueBefore)}</span>
                 <span>{fmt(a.valueAfter)}</span>
-                <span style={{ color: parseFloat(a.changePercent) >= 0 ? '#059669' : '#dc2626', fontWeight: 700 }}>
+                <span style={{ color: parseFloat(a.changePercent) >= 0 ? 'var(--up)' : 'var(--down)', fontWeight: 700 }}>
                   {parseFloat(a.changePercent) >= 0 ? '+' : ''}{a.changePercent}%
                 </span>
               </div>
