@@ -37,6 +37,10 @@ public class CacheConfig {
     public RedisCacheManager cacheManager(RedisConnectionFactory cf) {
         // @class 타입 정보 유지 — 없으면 POJO가 LinkedHashMap으로 역직렬화되어
         // BalanceResult 등 캐시 조회 시 ClassCastException 발생.
+        // EVERYTHING 정책 — record 등 final 클래스도 root 에 @class 박힘.
+        // NON_FINAL 시절에는 record 캐시값(예: KisMarketDataService.ChartResult) 의 root 가
+        // type-id 없이 저장돼 다음 hit 부터 "missing type id property '@class'" 로 폭발했다.
+        // 보안은 아래 PTV 가 com.backtesting / java.* 화이트리스트로 보장.
         PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType("com.backtesting.")
                 .allowIfSubType("java.util.")
@@ -46,7 +50,7 @@ public class CacheConfig {
                 .build();
         ObjectMapper om = new ObjectMapper()
                 .registerModule(new JavaTimeModule())
-                .activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+                .activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.EVERYTHING, JsonTypeInfo.As.PROPERTY);
         GenericJackson2JsonRedisSerializer jsonSer = new GenericJackson2JsonRedisSerializer(om);
 
         RedisCacheConfiguration base = RedisCacheConfiguration.defaultCacheConfig()
