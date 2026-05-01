@@ -1,11 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 
-const LEVEL_COLORS = {
-  INFO: { bg: '#EFF6FF', color: '#2563EB' },
-  WARN: { bg: '#FFFBEB', color: '#D97706' },
-  ERROR: { bg: '#FEF2F2', color: '#DC2626' },
-}
-
 export default function AuditLog() {
   const [entries, setEntries] = useState([])
   const [stats, setStats] = useState(null)
@@ -30,68 +24,66 @@ export default function AuditLog() {
 
   useEffect(() => {
     if (!autoRefresh) return
-    const interval = setInterval(loadData, 10000) // refresh every 10s
+    const interval = setInterval(loadData, 10000)
     return () => clearInterval(interval)
   }, [autoRefresh, loadData])
 
   return (
-    <div>
-      {/* Stats */}
+    <div className="audit-page">
       {stats && (
-        <div className="form-card">
-          <div className="stats-grid" style={{ marginBottom: 0 }}>
-            <div className="stat-box">
-              <div className="stat-label">Total Logs</div>
-              <div className="stat-value">{stats.totalEntries}</div>
-            </div>
-            <div className="stat-box">
-              <div className="stat-label">Today</div>
-              <div className="stat-value">{stats.todayCount}</div>
-            </div>
-            <div className="stat-box">
-              <div className="stat-label">Errors</div>
-              <div className="stat-value" style={{ color: stats.errors > 0 ? '#dc2626' : '#059669' }}>{stats.errors}</div>
-            </div>
-            <div className="stat-box">
-              <div className="stat-label">Warnings</div>
-              <div className="stat-value" style={{ color: stats.warnings > 0 ? '#d97706' : '#059669' }}>{stats.warnings}</div>
-            </div>
-            <div className="stat-box">
-              <div className="stat-label">Avg Duration</div>
-              <div className="stat-value">{stats.avgDurationMs}ms</div>
-            </div>
-            <div className="stat-box">
-              <div className="stat-label">Auto Refresh</div>
-              <div className="stat-value">
-                <button onClick={() => setAutoRefresh(!autoRefresh)}
-                  style={{
-                    padding: '4px 12px', borderRadius: 8, border: '1.5px solid',
-                    borderColor: autoRefresh ? '#10B981' : '#d1d5db',
-                    background: autoRefresh ? '#ECFDF5' : '#fff',
-                    color: autoRefresh ? '#059669' : '#6b7280',
-                    fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit'
-                  }}>
-                  {autoRefresh ? 'ON' : 'OFF'}
-                </button>
-              </div>
+        <div className="stats-grid audit-stats">
+          <div className="stat-box">
+            <div className="stat-label">Total</div>
+            <div className="stat-value">{stats.totalEntries?.toLocaleString?.() ?? stats.totalEntries}</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-label">Today</div>
+            <div className="stat-value">{stats.todayCount?.toLocaleString?.() ?? stats.todayCount}</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-label">Warnings</div>
+            <div className={`stat-value ${stats.warnings > 0 ? 'warn' : 'muted'}`}>{stats.warnings}</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-label">Errors</div>
+            <div className={`stat-value ${stats.errors > 0 ? 'down' : 'muted'}`}>{stats.errors}</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-label">Avg Duration</div>
+            <div className="stat-value">{stats.avgDurationMs}<span className="stat-unit"> ms</span></div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-label">Auto Refresh</div>
+            <div className="stat-value">
+              <button
+                className={`toggle-pill ${autoRefresh ? 'on' : 'off'}`}
+                onClick={() => setAutoRefresh(!autoRefresh)}
+              >
+                <span className="toggle-pill-dot" />
+                {autoRefresh ? 'ON' : 'OFF'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Filters */}
-      <div className="form-card" style={{ padding: '16px 24px' }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#6b7280' }}>FILTER:</span>
-          {['', 'INFO', 'WARN', 'ERROR'].map(level => (
-            <button key={level} onClick={() => setLevelFilter(level)}
-              className={`period-btn ${levelFilter === level ? 'active' : ''}`}
-              style={{ padding: '6px 12px' }}>
-              {level || 'All'}
-            </button>
-          ))}
-          <select value={limit} onChange={e => setLimit(parseInt(e.target.value))}
-            style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, border: '1.5px solid #e5e7eb', fontSize: '0.85rem', fontFamily: 'inherit' }}>
+      <div className="audit-toolbar">
+        <div className="audit-filter-group">
+          <span className="audit-filter-label">LEVEL</span>
+          <div className="period-buttons">
+            {['', 'INFO', 'WARN', 'ERROR'].map(level => (
+              <button
+                key={level || 'ALL'}
+                onClick={() => setLevelFilter(level)}
+                className={levelFilter === level ? 'active' : ''}
+              >
+                {level || 'ALL'}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="audit-filter-group right">
+          <select value={limit} onChange={e => setLimit(parseInt(e.target.value))} className="audit-limit-select">
             <option value={25}>25개</option>
             <option value={50}>50개</option>
             <option value={100}>100개</option>
@@ -101,44 +93,34 @@ export default function AuditLog() {
         </div>
       </div>
 
-      {/* Log table */}
-      <div className="result-card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div className="audit-table">
-          <div className="audit-header">
-            <span>Time</span>
-            <span>Level</span>
-            <span>Action</span>
-            <span>User</span>
-            <span>Status</span>
-            <span>Duration</span>
-          </div>
-          {entries.map((e, i) => {
-            const lc = LEVEL_COLORS[e.level] || LEVEL_COLORS.INFO
-            return (
-              <div key={e.id || i} className="audit-row">
-                <span className="audit-time">
-                  {e.timestamp ? new Date(e.timestamp).toLocaleTimeString() : '-'}
-                </span>
-                <span>
-                  <span className="audit-level-badge" style={{ background: lc.bg, color: lc.color }}>
-                    {e.level}
-                  </span>
-                </span>
-                <span className="audit-action">{e.action}</span>
-                <span className="audit-user">{e.user}</span>
-                <span className={`audit-status ${e.responseStatus >= 400 ? 'error' : ''}`}>
-                  {e.responseStatus}
-                </span>
-                <span className="audit-duration">{e.durationMs}ms</span>
-              </div>
-            )
-          })}
-          {entries.length === 0 && (
-            <div style={{ padding: 30, textAlign: 'center', color: '#9ca3af' }}>
-              아직 기록된 로그가 없습니다.
-            </div>
-          )}
+      <div className="audit-table">
+        <div className="audit-header">
+          <span>Time</span>
+          <span>Level</span>
+          <span>Action</span>
+          <span>User</span>
+          <span>Status</span>
+          <span>Duration</span>
         </div>
+        {entries.map((e, i) => (
+          <div key={e.id || i} className="audit-row">
+            <span className="audit-time">
+              {e.timestamp ? new Date(e.timestamp).toLocaleTimeString('ko-KR', { hour12: false }) : '-'}
+            </span>
+            <span>
+              <span className="audit-level-badge" data-level={e.level}>{e.level}</span>
+            </span>
+            <span className="audit-action" title={e.action}>{e.action}</span>
+            <span className="audit-user">{e.user || '-'}</span>
+            <span className={`audit-status ${e.responseStatus >= 500 ? 'down' : e.responseStatus >= 400 ? 'warn' : ''}`}>
+              {e.responseStatus}
+            </span>
+            <span className="audit-duration">{e.durationMs}<span className="audit-unit">ms</span></span>
+          </div>
+        ))}
+        {entries.length === 0 && (
+          <div className="audit-empty">기록된 로그가 없습니다.</div>
+        )}
       </div>
     </div>
   )
