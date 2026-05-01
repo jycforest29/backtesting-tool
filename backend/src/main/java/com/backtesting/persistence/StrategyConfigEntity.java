@@ -6,8 +6,10 @@ import com.backtesting.model.quant.QuantStrategyType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,16 +23,21 @@ import java.util.Map;
  */
 @Entity
 @Table(name = "strategy_configs")
-@Data
+@Getter
+@Setter
+@ToString(of = {"strategyType", "enabled", "lastRebalanceDate"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StrategyConfigEntity {
+public class StrategyConfigEntity extends AbstractEntity<QuantStrategyType> {
 
     @Id
     @Enumerated(EnumType.STRING)
     @Column(length = 32)
     private QuantStrategyType strategyType;
+
+    @Override
+    public QuantStrategyType getId() { return strategyType; }
 
     private boolean enabled;
     private BigDecimal allocatedAmount;

@@ -1,7 +1,9 @@
 package com.backtesting.persistence;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.Instant;
 
@@ -24,8 +26,10 @@ import java.time.Instant;
                @Index(name = "ix_strategy_event_agg_occurred",
                       columnList = "aggregate_id,occurred_at")
        })
-@Data
-public class StrategyEventEntity {
+@Getter
+@Setter
+@ToString(of = {"id", "aggregateId", "sequenceNumber", "eventType"})
+public class StrategyEventEntity extends AbstractEntity<String> {
 
     @Id
     @Column(length = 36)

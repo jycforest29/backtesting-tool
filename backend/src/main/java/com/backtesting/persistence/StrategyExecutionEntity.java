@@ -6,8 +6,10 @@ import com.backtesting.model.quant.QuantStrategyType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,11 +25,13 @@ import java.util.List;
        indexes = {
          @Index(name = "idx_exec_strategy_time", columnList = "strategyType, executedAt DESC")
        })
-@Data
+@Getter
+@Setter
+@ToString(of = {"id", "strategyType", "kind", "executedAt"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StrategyExecutionEntity {
+public class StrategyExecutionEntity extends AbstractEntity<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

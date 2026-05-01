@@ -4,8 +4,10 @@ import com.backtesting.model.OcoPosition;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,11 +23,13 @@ import java.util.List;
  */
 @Entity
 @Table(name = "oco_positions")
-@Data
+@Getter
+@Setter
+@ToString(of = {"id", "symbol", "status", "remainingQuantity"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OcoPositionEntity {
+public class OcoPositionEntity extends AbstractEntity<String> {
 
     @Id
     private String id;

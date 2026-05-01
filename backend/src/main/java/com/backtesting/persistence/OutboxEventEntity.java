@@ -1,7 +1,9 @@
 package com.backtesting.persistence;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.Instant;
 
@@ -19,8 +21,10 @@ import java.time.Instant;
 @Table(name = "outbox_event", indexes = {
         @Index(name = "ix_outbox_unsent", columnList = "sent_at,next_attempt_at")
 })
-@Data
-public class OutboxEventEntity {
+@Getter
+@Setter
+@ToString(of = {"id", "aggregateType", "aggregateId", "eventType", "sentAt", "retryCount"})
+public class OutboxEventEntity extends AbstractEntity<String> {
 
     @Id
     @Column(length = 36)

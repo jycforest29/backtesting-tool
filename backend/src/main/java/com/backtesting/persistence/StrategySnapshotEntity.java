@@ -1,7 +1,9 @@
 package com.backtesting.persistence;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.Instant;
 
@@ -14,8 +16,10 @@ import java.time.Instant;
        uniqueConstraints = @UniqueConstraint(
                name = "uk_strategy_snapshot_agg_seq",
                columnNames = {"aggregate_id", "sequence_number"}))
-@Data
-public class StrategySnapshotEntity {
+@Getter
+@Setter
+@ToString(of = {"id", "aggregateId", "sequenceNumber"})
+public class StrategySnapshotEntity extends AbstractEntity<String> {
 
     @Id
     @Column(length = 36)

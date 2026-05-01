@@ -1,7 +1,9 @@
 package com.backtesting.persistence;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.Instant;
 
@@ -20,8 +22,10 @@ import java.time.Instant;
 @Table(name = "idempotency_record",
        uniqueConstraints = @UniqueConstraint(name = "uk_idempotency_key", columnNames = "idempotency_key"),
        indexes = @Index(name = "ix_idempotency_expires", columnList = "expires_at"))
-@Data
-public class IdempotencyRecordEntity {
+@Getter
+@Setter
+@ToString(of = {"id", "key", "status"})
+public class IdempotencyRecordEntity extends AbstractEntity<String> {
 
     @Id
     @Column(length = 36)

@@ -4,8 +4,10 @@ import com.backtesting.model.AuditLogEntry;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -20,11 +22,13 @@ import java.time.LocalDateTime;
          @Index(name = "idx_audit_ts", columnList = "ts DESC"),
          @Index(name = "idx_audit_level", columnList = "log_level")
        })
-@Data
+@Getter
+@Setter
+@ToString(of = {"id", "method", "path", "responseStatus"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuditLogRowEntity {
+public class AuditLogRowEntity extends AbstractEntity<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

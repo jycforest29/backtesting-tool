@@ -1,7 +1,9 @@
 package com.backtesting.persistence;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.time.Instant;
 
@@ -21,11 +23,16 @@ import java.time.Instant;
 @Entity
 @Table(name = "audit_chain",
        indexes = @Index(name = "ix_audit_chain_occurred_at", columnList = "occurred_at"))
-@Data
-public class AuditChainEntity {
+@Getter
+@Setter
+@ToString(of = {"seq", "actor", "action"})
+public class AuditChainEntity extends AbstractEntity<Long> {
 
     @Id
     private Long seq;                   // 전역 단조증가 — 체인 순서
+
+    @Override
+    public Long getId() { return seq; }
 
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;

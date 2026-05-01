@@ -1,7 +1,9 @@
 package com.backtesting.persistence;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -20,8 +22,10 @@ import java.time.Instant;
         @Index(name = "ix_order_status", columnList = "status"),
         @Index(name = "ix_order_idempotency", columnList = "idempotencyKey")
 })
-@Data
-public class OrderRecordEntity {
+@Getter
+@Setter
+@ToString(of = {"id", "symbol", "side", "quantity", "status"})
+public class OrderRecordEntity extends AbstractEntity<String> {
 
     @Id
     @Column(length = 36)
