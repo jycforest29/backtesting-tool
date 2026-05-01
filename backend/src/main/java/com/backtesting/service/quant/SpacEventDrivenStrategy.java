@@ -7,6 +7,7 @@ import com.backtesting.model.quant.QuantStrategyType;
 import com.backtesting.service.dart.SpacEventService;
 import com.backtesting.service.dart.SpacUniverseService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -30,6 +31,7 @@ import java.util.Optional;
  * 한화투자증권은 KRX SPAC 상장 주관 상위권 → 동일 유니버스를 한화 계좌로 매매 가능.
  * 상장 폐지/합병 완료 종목은 KIS 가격 조회 실패 → 백테스트 엔진이 dynamicUniverse=true 모드로 스킵.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SpacEventDrivenStrategy implements QuantStrategy {
@@ -61,10 +63,20 @@ public class SpacEventDrivenStrategy implements QuantStrategy {
 
     @Override
     public List<QuantAsset> defaultUniverse() {
-        return universeService.listSpacs().stream()
-                .map(s -> new QuantAsset(s.stockCode(), s.name(),
-                        AssetType.KR_STOCK, QuantAsset.AssetRole.OFFENSIVE, null))
-                .toList();
+        // SPAC 유니버스는 DART corp-code 매핑에 의존한다 (DART_OPEN_API_KEY 필요).
+        // 키 미설정/네트워크 장애 시 메타데이터 응답까지 막히면 안 되므로,
+        // 빈 universe 로 폴백하고 운영자에게 WARN 으로 알린다.
+        // 실제 시그널 생성/주문 단계에 universe 가 비면 그쪽에서 별도 검증/거절.
+        try {
+            return universeService.listSpacs().stream()
+                    .map(s -> new QuantAsset(s.stockCode(), s.name(),
+                            AssetType.KR_STOCK, QuantAsset.AssetRole.OFFENSIVE, null))
+                    .toList();
+        } catch (RuntimeException ex) {
+            log.warn("SPAC universe unavailable ({}). Returning empty universe — "
+                    + "configure DART_OPEN_API_KEY to enable.", ex.getMessage());
+            return List.of();
+        }
     }
 
     @Override
