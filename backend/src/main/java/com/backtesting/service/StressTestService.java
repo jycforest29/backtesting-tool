@@ -58,7 +58,9 @@ public class StressTestService {
                     "공격적 금리 인상 (+3%p)",
                     "중앙은행 300bp 인상. 주식 -15~22%",
                     List.of(
-                            shock("INTEREST_RATE", "300"),
+                            // shockPercent 단위는 %p (percent point). 300bp = +3%p.
+                            // β 와 곱해 자산 충격으로 환산 — KR_STOCK β=-0.6 → -1.8%p 가 추가로 누적된다.
+                            shock("INTEREST_RATE", "3"),
                             shock("SP500", "-18"),
                             shock("KOSPI", "-22"),
                             shock("NIKKEI", "-15")
