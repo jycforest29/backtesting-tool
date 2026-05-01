@@ -170,7 +170,7 @@ public class QuantBacktestService {
         }
 
         LocalDate endDate = simDates.get(simDates.size() - 1);
-        BigDecimal finalValue = valueHistory.get(valueHistory.size() - 1).getValue();
+        BigDecimal finalValue = valueHistory.get(valueHistory.size() - 1).value();
         BigDecimal profitLoss = finalValue.subtract(request.getInvestmentAmount());
         BigDecimal returnPct = profitLoss
                 .divide(request.getInvestmentAmount(), 6, RoundingMode.HALF_UP)
@@ -257,8 +257,8 @@ public class QuantBacktestService {
         if (hist.size() < 2) return RiskMetrics.builder().build();
         List<Double> returns = new ArrayList<>();
         for (int i = 1; i < hist.size(); i++) {
-            double prev = hist.get(i - 1).getValue().doubleValue();
-            double cur = hist.get(i).getValue().doubleValue();
+            double prev = hist.get(i - 1).value().doubleValue();
+            double cur = hist.get(i).value().doubleValue();
             if (prev > 0) returns.add((cur - prev) / prev);
         }
         double meanDaily = returns.stream().mapToDouble(d -> d).average().orElse(0);
@@ -274,17 +274,17 @@ public class QuantBacktestService {
         double annualDown = downStd * Math.sqrt(TRADING_DAYS_PER_YEAR) * 100;
         double sortino = annualDown > 0 ? (annualReturn - rf) / annualDown : 0;
 
-        double peak = hist.get(0).getValue().doubleValue();
+        double peak = hist.get(0).value().doubleValue();
         double maxDD = 0;
         int ddStartIdx = 0, ddEndIdx = 0, peakIdx = 0;
         for (int i = 1; i < hist.size(); i++) {
-            double v = hist.get(i).getValue().doubleValue();
+            double v = hist.get(i).value().doubleValue();
             if (v > peak) { peak = v; peakIdx = i; }
             double dd = (v - peak) / peak;
             if (dd < maxDD) { maxDD = dd; ddStartIdx = peakIdx; ddEndIdx = i; }
         }
 
-        double lastVal = hist.get(hist.size() - 1).getValue().doubleValue();
+        double lastVal = hist.get(hist.size() - 1).value().doubleValue();
         double totalReturn = invested.doubleValue() > 0
                 ? ((lastVal - invested.doubleValue()) / invested.doubleValue()) * 100 : 0;
         long days = ChronoUnit.DAYS.between(start, end);
@@ -296,8 +296,8 @@ public class QuantBacktestService {
                 .sharpeRatio(BigDecimal.valueOf(sharpe).setScale(2, RoundingMode.HALF_UP))
                 .sortinoRatio(BigDecimal.valueOf(sortino).setScale(2, RoundingMode.HALF_UP))
                 .maxDrawdown(BigDecimal.valueOf(maxDD * 100).setScale(2, RoundingMode.HALF_UP))
-                .maxDrawdownStart(hist.get(ddStartIdx).getDate())
-                .maxDrawdownEnd(hist.get(ddEndIdx).getDate())
+                .maxDrawdownStart(hist.get(ddStartIdx).date())
+                .maxDrawdownEnd(hist.get(ddEndIdx).date())
                 .annualVolatility(BigDecimal.valueOf(annualVol).setScale(2, RoundingMode.HALF_UP))
                 .annualReturn(BigDecimal.valueOf(annualReturn).setScale(2, RoundingMode.HALF_UP))
                 .totalReturn(BigDecimal.valueOf(totalReturn).setScale(2, RoundingMode.HALF_UP))

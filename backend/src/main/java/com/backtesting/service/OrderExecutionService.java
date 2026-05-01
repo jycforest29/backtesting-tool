@@ -100,15 +100,15 @@ public class OrderExecutionService {
             long latencyMs = elapsedMs(t0);
 
             // phase 2: ACCEPTED / REJECTED (별도 tx) + outbox 이벤트.
-            if (result.isSuccess()) {
+            if (result.success()) {
                 markAccepted(recordId, req, result, latencyMs);
                 writeAudit(recordId, req, "ORDER_ACCEPTED", AUDIT_LEVEL_INFO, principal, traceId,
-                        "KIS accepted orderNo=" + result.getOrderNo(), null, latencyMs);
+                        "KIS accepted orderNo=" + result.orderNo(), null, latencyMs);
                 metrics.onAccepted(req.getMarket().name(), req.getSide(), Duration.ofMillis(latencyMs));
             } else {
                 markRejected(recordId, req, result, latencyMs);
                 writeAudit(recordId, req, "ORDER_REJECTED", AUDIT_LEVEL_WARN, principal, traceId,
-                        "KIS rejected: " + result.getRawCode(), result.getMessage(), latencyMs);
+                        "KIS rejected: " + result.rawCode(), result.message(), latencyMs);
                 metrics.onRejected(req.getMarket().name(), req.getSide(),
                         safeReason(result), Duration.ofMillis(latencyMs));
             }
@@ -119,7 +119,7 @@ public class OrderExecutionService {
 
     private static String safeReason(OrderResult r) {
         // rawCode 는 KIS 의 구조화 코드 (카디널리티 제한됨). 없으면 GENERIC_REJECT.
-        return r.getRawCode() == null || r.getRawCode().isBlank() ? "GENERIC_REJECT" : r.getRawCode();
+        return r.rawCode() == null || r.rawCode().isBlank() ? "GENERIC_REJECT" : r.rawCode();
     }
 
     // ------------------ transactional phases ------------------
@@ -148,7 +148,7 @@ public class OrderExecutionService {
         OrderRecordEntity rec = orderRepo.findById(id).orElseThrow(() ->
                 new IllegalStateException("OrderRecord disappeared between phase 1 and 2: id=" + id));
         rec.setStatus("ACCEPTED");
-        rec.setOrderNo(result.getOrderNo());
+        rec.setOrderNo(result.orderNo());
         rec.setPlacedAt(clock.instant());
         rec.setLatencyMs(latencyMs);
         orderRepo.save(rec);
@@ -163,10 +163,10 @@ public class OrderExecutionService {
         OrderRecordEntity rec = orderRepo.findById(id).orElseThrow(() ->
                 new IllegalStateException("OrderRecord disappeared between phase 1 and 2: id=" + id));
         rec.setStatus("REJECTED");
-        rec.setOrderNo(result.getOrderNo());
+        rec.setOrderNo(result.orderNo());
         rec.setPlacedAt(clock.instant());
         rec.setLatencyMs(latencyMs);
-        rec.setRejectReason(truncate(result.getMessage(), 500));
+        rec.setRejectReason(truncate(result.message(), 500));
         orderRepo.save(rec);
 
         TradeEvent event = buildEvent(req, result, "ORDER_REJECTED", false);
@@ -215,9 +215,9 @@ public class OrderExecutionService {
                 .side(req.getSide())
                 .quantity(req.getQuantity())
                 .price(parsePrice(req.getPrice()))
-                .orderNo(result.getOrderNo())
+                .orderNo(result.orderNo())
                 .success(success)
-                .message(result.getMessage())
+                .message(result.message())
                 .build();
     }
 

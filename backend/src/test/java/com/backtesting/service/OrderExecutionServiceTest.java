@@ -106,7 +106,7 @@ class OrderExecutionServiceTest {
 
         OrderResult result = svc.execute(sampleBuy(), "idem-1");
 
-        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.success()).isTrue();
         // 2번 save: PLACING 과 ACCEPTED.
         verify(orderRepo, times(2)).save(any());
         // 최종 상태.
@@ -131,7 +131,7 @@ class OrderExecutionServiceTest {
 
         OrderResult result = svc.execute(sampleBuy(), null);
 
-        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.success()).isFalse();
         OrderRecordEntity stored = store.values().iterator().next();
         assertThat(stored.getStatus()).isEqualTo("REJECTED");
         assertThat(stored.getRejectReason()).contains("잔고 부족");

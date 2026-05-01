@@ -63,16 +63,16 @@ public class AuditLogRowEntity extends AbstractEntity<Long> {
 
     public static AuditLogRowEntity fromDomain(AuditLogEntry e) {
         return AuditLogRowEntity.builder()
-                .timestamp(e.getTimestamp())
-                .method(e.getMethod())
-                .path(truncate(e.getPath(), 255))
-                .action(truncate(e.getAction(), 128))
-                .user(truncate(e.getUser(), 64))
-                .requestBody(truncate(e.getRequestBody(), 4000))
-                .responseStatus(e.getResponseStatus())
-                .durationMs(e.getDurationMs())
-                .level(truncate(e.getLevel(), 10))
-                .detail(truncate(e.getDetail(), 2048))
+                .timestamp(e.timestamp())
+                .method(e.method())
+                .path(truncate(e.path(), 255))
+                .action(truncate(e.action(), 128))
+                .user(truncate(e.user(), 64))
+                .requestBody(truncate(e.requestBody(), 4000))
+                .responseStatus(e.responseStatus())
+                .durationMs(e.durationMs())
+                .level(truncate(e.level(), 10))
+                .detail(truncate(e.detail(), 2048))
                 .build();
     }
 

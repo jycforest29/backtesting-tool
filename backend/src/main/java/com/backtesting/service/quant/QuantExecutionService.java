@@ -623,8 +623,8 @@ public class QuantExecutionService {
             return QuantExecutionLog.OrderOutcome.builder()
                     .symbol(po.symbol).name(po.name).side(po.side)
                     .quantity(po.quantity).price(po.priceSnapshot)
-                    .success(res.isSuccess()).orderNo(res.getOrderNo())
-                    .message(res.getMessage())
+                    .success(res.success()).orderNo(res.orderNo())
+                    .message(res.message())
                     .build();
         } catch (Exception e) {
             log.warn("Order failed {} {} {}: {}", po.side, po.symbol, po.quantity, e.getMessage());

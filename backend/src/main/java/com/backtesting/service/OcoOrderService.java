@@ -222,13 +222,13 @@ public class OcoOrderService {
                 log.warn("Main order placement threw; reconciling. err={}", placeEx.getMessage());
                 mainResult = reconcileUnknownOrder(pos, placeEx.getMessage());
             }
-            if (!mainResult.isSuccess()) {
+            if (!mainResult.success()) {
                 pos.setStatus(OcoPosition.OcoStatus.FAILED);
-                pos.setLastBuyFailReason(mainResult.getMessage());
+                pos.setLastBuyFailReason(mainResult.message());
                 persist(pos);
-                throw new IllegalStateException("Main order failed: " + mainResult.getMessage());
+                throw new IllegalStateException("Main order failed: " + mainResult.message());
             }
-            pos.setMainOrderNo(mainResult.getOrderNo());
+            pos.setMainOrderNo(mainResult.orderNo());
             pos.setStatus(OcoPosition.OcoStatus.PENDING_FILL);
             persist(pos);
             log.info("Immediate entry id={} symbol={} qty={} orderNo={}",
@@ -487,18 +487,18 @@ public class OcoOrderService {
         } catch (Exception e) {
             res = reconcileUnknownOrder(pos, e.getMessage());
         }
-        if (!res.isSuccess()) {
-            pos.setLastBuyFailReason(res.getMessage());
+        if (!res.success()) {
+            pos.setLastBuyFailReason(res.message());
             pos.setBuyAttempts(pos.getBuyAttempts() + 1);
             persist(pos);
-            log.warn("Conditional buy placement failed id={}: {}", pos.getId(), res.getMessage());
+            log.warn("Conditional buy placement failed id={}: {}", pos.getId(), res.message());
             return;
         }
-        pos.setMainOrderNo(res.getOrderNo());
+        pos.setMainOrderNo(res.orderNo());
         pos.setStatus(OcoPosition.OcoStatus.PENDING_FILL);
         persist(pos);
         log.info("Conditional buy fired id={} symbol={} @ {} orderNo={}",
-                pos.getId(), pos.getSymbol(), price, res.getOrderNo());
+                pos.getId(), pos.getSymbol(), price, res.orderNo());
         safeEmail("[매수 발동] " + pos.getSymbol() + " " + pos.getEntryType(),
                 renderEntryFiredMail(pos, price, res));
     }
@@ -659,8 +659,8 @@ public class OcoOrderService {
                 .eventType("STOP_LOSS").occurredAt(LocalDateTime.now())
                 .source("OcoOrderService").symbol(pos.getSymbol())
                 .side("SELL").quantity(qty).price(price)
-                .positionId(pos.getId()).orderNo(res.getOrderNo())
-                .success(res.isSuccess()).message(res.getMessage())
+                .positionId(pos.getId()).orderNo(res.orderNo())
+                .success(res.success()).message(res.message())
                 .build());
         long pnl = price.subtract(pos.getEntryPrice())
                 .multiply(BigDecimal.valueOf(qty)).longValue();
@@ -684,15 +684,15 @@ public class OcoOrderService {
                 .eventType("TAKE_PROFIT").occurredAt(LocalDateTime.now())
                 .source("OcoOrderService").symbol(pos.getSymbol())
                 .side("SELL").quantity(qty).price(price)
-                .positionId(pos.getId()).orderNo(res.getOrderNo())
-                .success(res.isSuccess()).message("TP +" + leg.getPercent() + "%")
+                .positionId(pos.getId()).orderNo(res.orderNo())
+                .success(res.success()).message("TP +" + leg.getPercent() + "%")
                 .build());
         long pnl = price.subtract(pos.getEntryPrice())
                 .multiply(BigDecimal.valueOf(qty)).longValue();
         lossGuard.recordRealizedPnl(pnl);
         leg.setTriggered(true);
         leg.setExecutedQuantity(qty);
-        leg.setOrderNo(res.getOrderNo());
+        leg.setOrderNo(res.orderNo());
         pos.setRemainingQuantity(pos.getRemainingQuantity() - qty);
 
         if (pos.getRemainingQuantity() <= 0) {
@@ -757,7 +757,7 @@ public class OcoOrderService {
                 + "<p>종목 " + pos.getSymbol() + " · 수량 " + pos.getTotalQuantity() + "주</p>"
                 + "<p>감시 조건: " + pos.getEntryType() + " @ " + pos.getTriggerPrice() + "</p>"
                 + "<p>발동 시 현재가: <b>" + triggerPrice + "</b></p>"
-                + "<p>매수 주문 결과: " + (res.isSuccess() ? "접수 OK · " + res.getOrderNo() : "실패 - " + res.getMessage()) + "</p>"
+                + "<p>매수 주문 결과: " + (res.success() ? "접수 OK · " + res.orderNo() : "실패 - " + res.message()) + "</p>"
                 + "<p style='color:#999;font-size:12px'>체결 확인 후 손절/익절 감시 자동 시작.</p>"
                 + "</div>";
     }
@@ -783,7 +783,7 @@ public class OcoOrderService {
                 + "<h3>" + kind + " 실행</h3>"
                 + "<p>종목 " + pos.getSymbol() + "</p>"
                 + "<p>체결가(참고) <b>" + price + "</b> · 수량 " + qty + "주</p>"
-                + "<p>주문 결과: " + (res.isSuccess() ? "접수 OK · 주문번호 " + res.getOrderNo() : "실패 - " + res.getMessage()) + "</p>"
+                + "<p>주문 결과: " + (res.success() ? "접수 OK · 주문번호 " + res.orderNo() : "실패 - " + res.message()) + "</p>"
                 + "<p>잔여 수량: " + pos.getRemainingQuantity() + "주 / 총 " + pos.getTotalQuantity() + "주</p>"
                 + "</div>";
     }

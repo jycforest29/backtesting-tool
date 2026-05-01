@@ -72,7 +72,7 @@ public class AuditLogService {
             truncatedBody = truncatedBody.substring(0, 500) + "...";
         }
 
-        AuditLogEntry entry = AuditLogEntry.builder()
+        AuditLogRowEntity row = AuditLogRowEntity.builder()
                 .timestamp(LocalDateTime.now())
                 .method(method)
                 .path(path)
@@ -86,13 +86,13 @@ public class AuditLogService {
                 .build();
 
         try {
-            AuditLogRowEntity saved = repo.save(AuditLogRowEntity.fromDomain(entry));
-            entry.setId(saved.getId());
+            row = repo.save(row);
         } catch (Exception e) {
             // 감사로그 DB 실패는 애플리케이션 동작 막지 않는다 — 파일 로거가 fallback.
             log.warn("Audit log persist failed: {}", e.getMessage());
         }
 
+        AuditLogEntry entry = row.toDomain();
         memoryCache.addFirst(entry);
         while (memoryCache.size() > MEMORY_CACHE_SIZE) memoryCache.removeLast();
 

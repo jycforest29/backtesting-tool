@@ -136,14 +136,14 @@ public class AutoTradingController {
             IdempotencyService.Result<OrderResult> r = idempotency.execute(
                     idempotencyKey, req, OrderResult.class,
                     () -> orderExecution.execute(req, idempotencyKey));
-            if (r.value().isSuccess() && !r.replay()) notifyOrderAccepted(req, r.value());
+            if (r.value().success() && !r.replay()) notifyOrderAccepted(req, r.value());
             return ResponseEntity.ok()
                     .header("X-Idempotent-Replay", String.valueOf(r.replay()))
                     .body(r.value());
         }
 
         OrderResult result = orderExecution.execute(req, null);
-        if (result.isSuccess()) notifyOrderAccepted(req, result);
+        if (result.success()) notifyOrderAccepted(req, result);
         return ResponseEntity.ok(result);
     }
 
@@ -161,8 +161,8 @@ public class AutoTradingController {
                 + row("주문 유형", req.getOrderType())
                 + row("수량", String.valueOf(req.getQuantity()))
                 + row("가격", req.getPrice() == null ? "시장가(지정가 변환)" : req.getPrice())
-                + row("주문번호", result.getOrderNo())
-                + row("접수시각", result.getOrderTime())
+                + row("주문번호", result.orderNo())
+                + row("접수시각", result.orderTime())
                 + "</table>"
                 + "<p style='color:#999;font-size:12px'>체결 여부는 별도 확인 필요.</p>"
                 + "</div>";
