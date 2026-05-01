@@ -74,14 +74,39 @@ services:
     # 외부 노출 금지. nginx 가 같은 호스트의 backend:8080 으로 프록시.
     # 직접 호출은 SSH 터널: ssh -L 8080:localhost:8080 ubuntu@<host>
     ports: ["127.0.0.1:8080:8080"]
+    # secrets 주입 우선순위: 호스트 셸 환경변수 (~/.bashrc 등) > .env 파일.
+    # 변수 보간 ${VAR:-} 가 호스트 셸의 값을 읽어 컨테이너에 주입한다 — 대화형 셸에서 docker compose 를
+    # 실행해야 동작 (sudo 사용 시 sudo -E 필요). 미설정 시 빈 문자열로 폴백 → 백엔드 503 안내 분기로 진입.
     env_file: [.env]
     environment:
+      # === 컨테이너 네트워크 / 부팅 모드 (정적) ===
       - REDIS_HOST=redis
       - KAFKA_BOOTSTRAP=kafka:9092
       - SPRING_PROFILES_ACTIVE=docker
       - DB_PATH=/data/backtesting-tool-db
       - H2_CONSOLE=false          # 운영 배포 시 콘솔 비활성화
       - CACHE_TYPE=redis
+      # === 호스트 셸 환경변수 인계 (KIS / DART / 알림 / 보안 키) ===
+      # 사용자 ~/.bashrc 에 export 된 값이 있으면 그대로, 없으면 빈 값.
+      - HANTOO_API_KEY=${HANTOO_API_KEY:-}
+      - HANTOO_API_SECRET=${HANTOO_API_SECRET:-}
+      - HANTOO_ACCOUNT=${HANTOO_ACCOUNT:-}
+      - HANTOO_ACCOUNT_PRODUCT=${HANTOO_ACCOUNT_PRODUCT:-01}
+      - HANTOO_PAPER_TRADING=${HANTOO_PAPER_TRADING:-false}
+      - HANTOO_RATE_PER_SEC=${HANTOO_RATE_PER_SEC:-18}
+      - DART_OPEN_API_KEY=${DART_OPEN_API_KEY:-}
+      - ELW_ENABLED=${ELW_ENABLED:-false}
+      - ELW_CHAIN_URL=${ELW_CHAIN_URL:-}
+      - ELW_CHAIN_TR_ID=${ELW_CHAIN_TR_ID:-}
+      - GMAIL_USERNAME=${GMAIL_USERNAME:-}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD:-}
+      - ALERT_RECIPIENT=${ALERT_RECIPIENT:-}
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-}
+      - TRADER_API_KEY=${TRADER_API_KEY:-}
+      - VIEWER_API_KEY=${VIEWER_API_KEY:-}
+      - SCRAPER_API_KEY=${SCRAPER_API_KEY:-}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - DB_PASSWORD=${DB_PASSWORD:-}
     volumes:
       - backend-data:/data
     depends_on:
