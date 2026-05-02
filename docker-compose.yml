@@ -121,6 +121,10 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: bt-frontend
+    # nginx envsubst 가 시작 시 X-API-Key 헤더에 주입. 키 미설정 시 컨테이너가 안 뜨도록 :? 사용
+    # → "사이트는 떴는데 인증 깨진" 무성한 실패 대신 fail-fast.
+    environment:
+      VIEWER_API_KEY: "${VIEWER_API_KEY:?VIEWER_API_KEY is required for nginx X-API-Key injection}"
     ports: ["80:80"]
     depends_on:
       - backend

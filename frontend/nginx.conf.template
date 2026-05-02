@@ -1,4 +1,9 @@
-# React SPA + /api 프록시 설정
+# React SPA + /api 프록시 설정 (envsubst 템플릿)
+#
+# nginx 공식 이미지의 docker-entrypoint 가 시작 시 /etc/nginx/templates/*.template
+# 에 대해 envsubst 를 돌려 /etc/nginx/conf.d/ 로 출력한다. 컨테이너 환경변수에 있는
+# 식별자만 화이트리스트로 치환하므로 $host, $remote_addr 같은 nginx 런타임 변수는
+# 안전. ${VIEWER_API_KEY} 는 컨테이너 시작 시점에 주입된다 → 이미지에는 키 미포함.
 server {
   listen 80;
   server_name _;
@@ -19,6 +24,7 @@ server {
 
   # /api/* 는 backend 서비스로 프록시 (Docker 네트워크 안에서 hostname=backend).
   # 변수형 proxy_pass 는 URI 자동 보존이 안 되므로 $request_uri 로 명시 전달.
+  # X-API-Key 는 서버 사이드 envsubst 로 주입 — 브라우저 JS 번들에 키가 노출되지 않음.
   location /api/ {
     proxy_pass http://$upstream_backend:8080$request_uri;
     proxy_http_version 1.1;
@@ -26,16 +32,18 @@ server {
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-API-Key ${VIEWER_API_KEY};
     proxy_read_timeout 60s;
   }
 
-  # WebSocket (SockJS + STOMP)
+  # WebSocket (SockJS + STOMP) — 동일하게 X-API-Key 주입
   location /ws/ {
     proxy_pass http://$upstream_backend:8080$request_uri;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_set_header Host $host;
+    proxy_set_header X-API-Key ${VIEWER_API_KEY};
     proxy_read_timeout 3600s;
   }
 
