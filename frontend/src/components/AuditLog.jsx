@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
+import useIsMobile from '../hooks/useIsMobile'
 
 export default function AuditLog() {
+  const isMobile = useIsMobile()
   const [entries, setEntries] = useState([])
   const [stats, setStats] = useState(null)
   const [levelFilter, setLevelFilter] = useState('')
@@ -15,8 +17,9 @@ export default function AuditLog() {
         fetch(`/api/audit-log?${params}`),
         fetch('/api/audit-log/stats'),
       ])
-      setEntries(await entriesRes.json())
-      setStats(await statsRes.json())
+      const entriesJson = entriesRes.ok ? await entriesRes.json() : []
+      setEntries(Array.isArray(entriesJson) ? entriesJson : [])
+      setStats(statsRes.ok ? await statsRes.json() : null)
     } catch (e) { console.error(e) }
   }, [limit, levelFilter])
 
@@ -93,35 +96,61 @@ export default function AuditLog() {
         </div>
       </div>
 
-      <div className="audit-table">
-        <div className="audit-header">
-          <span>Time</span>
-          <span>Level</span>
-          <span>Action</span>
-          <span>User</span>
-          <span>Status</span>
-          <span>Duration</span>
+      {isMobile ? (
+        <div className="audit-cards">
+          {entries.map((e, i) => (
+            <div key={e.id || i} className="audit-card">
+              <div className="audit-card-top">
+                <span className="audit-level-badge" data-level={e.level}>{e.level}</span>
+                <span className="audit-card-time">
+                  {e.timestamp ? new Date(e.timestamp).toLocaleTimeString('ko-KR', { hour12: false }) : '-'}
+                </span>
+                <span className={`audit-status ${e.responseStatus >= 500 ? 'down' : e.responseStatus >= 400 ? 'warn' : ''}`}>
+                  {e.responseStatus}
+                </span>
+              </div>
+              <div className="audit-card-action">{e.action}</div>
+              <div className="audit-card-meta">
+                <span className="audit-user">{e.user || '-'}</span>
+                <span className="audit-duration">{e.durationMs}<span className="audit-unit">ms</span></span>
+              </div>
+            </div>
+          ))}
+          {entries.length === 0 && (
+            <div className="audit-empty">기록된 로그가 없습니다.</div>
+          )}
         </div>
-        {entries.map((e, i) => (
-          <div key={e.id || i} className="audit-row">
-            <span className="audit-time">
-              {e.timestamp ? new Date(e.timestamp).toLocaleTimeString('ko-KR', { hour12: false }) : '-'}
-            </span>
-            <span>
-              <span className="audit-level-badge" data-level={e.level}>{e.level}</span>
-            </span>
-            <span className="audit-action" title={e.action}>{e.action}</span>
-            <span className="audit-user">{e.user || '-'}</span>
-            <span className={`audit-status ${e.responseStatus >= 500 ? 'down' : e.responseStatus >= 400 ? 'warn' : ''}`}>
-              {e.responseStatus}
-            </span>
-            <span className="audit-duration">{e.durationMs}<span className="audit-unit">ms</span></span>
+      ) : (
+        <div className="audit-table">
+          <div className="audit-header">
+            <span>Time</span>
+            <span>Level</span>
+            <span>Action</span>
+            <span>User</span>
+            <span>Status</span>
+            <span>Duration</span>
           </div>
-        ))}
-        {entries.length === 0 && (
-          <div className="audit-empty">기록된 로그가 없습니다.</div>
-        )}
-      </div>
+          {entries.map((e, i) => (
+            <div key={e.id || i} className="audit-row">
+              <span className="audit-time">
+                {e.timestamp ? new Date(e.timestamp).toLocaleTimeString('ko-KR', { hour12: false }) : '-'}
+              </span>
+              <span>
+                <span className="audit-level-badge" data-level={e.level}>{e.level}</span>
+              </span>
+              <span className="audit-action" title={e.action}>{e.action}</span>
+              <span className="audit-user">{e.user || '-'}</span>
+              <span className={`audit-status ${e.responseStatus >= 500 ? 'down' : e.responseStatus >= 400 ? 'warn' : ''}`}>
+                {e.responseStatus}
+              </span>
+              <span className="audit-duration">{e.durationMs}<span className="audit-unit">ms</span></span>
+            </div>
+          ))}
+          {entries.length === 0 && (
+            <div className="audit-empty">기록된 로그가 없습니다.</div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

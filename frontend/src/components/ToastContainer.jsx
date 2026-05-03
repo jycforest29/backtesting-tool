@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { subscribeToasts, dismissToast } from '../toast'
+import useIsMobile from '../hooks/useIsMobile'
 
 const TYPE_STYLES = {
   info: { bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
@@ -10,14 +11,21 @@ const TYPE_STYLES = {
 
 export default function ToastContainer() {
   const [toasts, setToasts] = useState([])
+  const isMobile = useIsMobile()
 
   useEffect(() => subscribeToasts(setToasts), [])
 
   return (
     <div style={{
-      position: 'fixed', top: 16, right: 16, zIndex: 9999,
+      position: 'fixed',
+      top: isMobile ? 'auto' : 16,
+      bottom: isMobile ? 12 : 'auto',
+      left: isMobile ? 12 : 'auto',
+      right: isMobile ? 12 : 16,
+      zIndex: 9999,
       display: 'flex', flexDirection: 'column', gap: 8,
-      maxWidth: 380, pointerEvents: 'none',
+      maxWidth: isMobile ? 'none' : 380,
+      pointerEvents: 'none',
     }}>
       {toasts.map(t => {
         const s = TYPE_STYLES[t.type] || TYPE_STYLES.info

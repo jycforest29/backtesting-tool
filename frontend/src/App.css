@@ -63,6 +63,8 @@
   /* 셸 폭 */
   --side-w: 220px;
   --top-h: 60px;
+  --side-w-mobile: 280px;
+  --top-h-mobile: 52px;
 
   /* 폰트 */
   --ff-ui:  'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -1867,4 +1869,242 @@ input[type='radio'] {
   }
   .shell-main { padding: 14px 16px 60px; }
   .ctx-right { flex-wrap: wrap; }
+}
+
+/* =====================================================================
+   모바일 셸 (useIsMobile 분기 — < 768px)
+   ===================================================================== */
+.shell-mobile {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-1);
+}
+
+.shell-mobile-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line);
+  height: var(--top-h-mobile);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+}
+
+.hamburger {
+  width: 36px; height: 36px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+.hamburger:active { background: var(--bg-3); }
+.hamburger span {
+  width: 16px;
+  height: 2px;
+  background: var(--tx-1);
+  border-radius: 2px;
+  display: block;
+}
+
+.shell-mobile-title {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.2;
+}
+.shell-mobile-title-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tx-0);
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shell-mobile-title-hint {
+  font-family: var(--ff-num);
+  font-size: 10px;
+  color: var(--tx-2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.shell-mobile-top-right { flex-shrink: 0; }
+
+.shell-mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.32);
+  z-index: 30;
+  animation: shell-backdrop-in 0.18s ease-out;
+}
+@keyframes shell-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.shell-mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(var(--side-w-mobile), 86vw);
+  background: var(--bg-2);
+  border-right: 1px solid var(--line);
+  z-index: 31;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  animation: shell-drawer-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes shell-drawer-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.shell-mobile-drawer .brand { position: relative; }
+.drawer-close {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  color: var(--tx-2);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  line-height: 1;
+}
+.drawer-close:active { background: var(--bg-3); }
+
+.shell-mobile-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  gap: 10px;
+}
+
+.shell-mobile-main {
+  flex: 1;
+  padding: 14px 14px 80px;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ---- AuditLog 모바일 카드 ---- */
+.audit-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.audit-card {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.audit-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.audit-card-time {
+  font-family: var(--ff-num);
+  font-size: 11px;
+  color: var(--tx-2);
+  flex: 1;
+}
+.audit-card-action {
+  font-size: 13px;
+  color: var(--tx-0);
+  line-height: 1.4;
+  word-break: break-word;
+}
+.audit-card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--tx-2);
+}
+
+/* =====================================================================
+   모바일 페이지 컨텐츠 보강 (< 768px)
+   - 셸은 useIsMobile 분기로 갈라지지만, 페이지 내부는 동일 컴포넌트 →
+     깨지기 쉬운 그리드/표/폼/차트만 모바일 폭에 맞게 풀어준다.
+   ===================================================================== */
+@media (max-width: 767.98px) {
+  /* 카드 패딩 축소 */
+  .form-card,
+  .result-card,
+  .risk-card { padding: 14px; border-radius: var(--r-md); }
+
+  /* 통계 그리드 — 2열로 줄임 (audit 만 3열) */
+  .stats-grid,
+  .tax-result-grid,
+  .risk-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .audit-stats { grid-template-columns: repeat(3, 1fr); }
+
+  .stat-box,
+  .tax-result-item,
+  .risk-detail { padding: 10px 12px; }
+  .stat-value { font-size: 16px; }
+  .stat-label { font-size: 10px; }
+
+  /* 폼 라벨 위로 + 100% 폭 */
+  .form-row { flex-direction: column; gap: 12px; }
+  .form-group { width: 100%; min-width: 0; }
+  .form-group input,
+  .form-group select,
+  .form-group textarea { width: 100%; }
+
+  /* 차트 컨테이너 — 풀폭 + 축소 */
+  .chart-container { padding: 12px; }
+  .chart-title { font-size: 13px; }
+
+  /* AuditLog 툴바 */
+  .audit-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .audit-filter-group.right { margin-left: 0; }
+  .audit-filter-group.right .audit-limit-select,
+  .audit-filter-group.right .btn-refresh { flex: 1; }
+
+  /* 결과 헤더 stack */
+  .result-header { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .result-header h2,
+  .result-header h3 { font-size: 15px; }
+  .result-sub { font-size: 11px; }
+
+  /* 자산 행 stack */
+  .portfolio-asset-row,
+  .kang-asset-row { flex-wrap: wrap; gap: 8px; }
+
+  /* 토스트 컨테이너 — 하단 SnackBar 형식 */
+  .toast-container {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: none !important;
+  }
 }
