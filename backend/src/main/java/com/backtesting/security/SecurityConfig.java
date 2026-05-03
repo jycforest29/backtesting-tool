@@ -139,10 +139,7 @@ public class SecurityConfig {
                                      "/api/trading/alert/**",
                                      "/api/trading/scanner/**").hasRole("ADMIN");
 
-                // ---- 감사 로그 — ADMIN ----
-                auth.requestMatchers("/api/audit-log/**").hasRole("ADMIN");
-
-                // ---- 그 외 /api/trading/** (read) 및 /api/** (backtest 등) — authenticated ----
+                // ---- 그 외 /api/trading/** (read) 및 /api/** (backtest, audit-log 등) — authenticated ----
                 auth.requestMatchers("/api/**").authenticated();
 
                 auth.anyRequest().denyAll();
