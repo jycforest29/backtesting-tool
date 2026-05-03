@@ -2,6 +2,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
   Bar, BarChart, Line, ComposedChart, Area, ReferenceLine
 } from 'recharts'
+import useIsMobile from '../hooks/useIsMobile'
 
 const fmtAmt = (num) => {
   if (num == null) return '-'
@@ -52,6 +53,7 @@ function SummaryCard({ label, value, color, sub }) {
 
 
 export default function InvestorFlowResult({ result }) {
+  const isMobile = useIsMobile()
   const r = result
   const s = r.summary || {}
   const signalCfg = SIGNAL_CONFIG[s.divergenceSignal] || SIGNAL_CONFIG.NEUTRAL
@@ -120,7 +122,7 @@ export default function InvestorFlowResult({ result }) {
           <div className="chart-title" style={{ marginTop: 28 }}>일별 순매수 (주식 수)</div>
           <div className="chart-container" style={{ height: 350 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 10 }}>
+              <BarChart data={chartData} margin={{ top: 5, right: isMobile ? 6 : 20, bottom: 5, left: isMobile ? 0 : 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                 <XAxis dataKey="date" tick={{ fill: 'var(--tx-3)', fontSize: 10 }} tickLine={false} minTickGap={40} />
                 <YAxis tick={{ fill: 'var(--tx-3)', fontSize: 11 }} tickLine={false} axisLine={false}
@@ -149,14 +151,14 @@ export default function InvestorFlowResult({ result }) {
           <div className="chart-title" style={{ marginTop: 28 }}>누적 순매수 vs 주가</div>
           <div className="chart-container" style={{ height: 400 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartData} margin={{ top: 5, right: 60, bottom: 5, left: 10 }}>
+              <ComposedChart data={chartData} margin={{ top: 5, right: isMobile ? 8 : 60, bottom: 5, left: isMobile ? 0 : 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                 <XAxis dataKey="date" tick={{ fill: 'var(--tx-3)', fontSize: 10 }} tickLine={false} minTickGap={40} />
                 <YAxis yAxisId="cum" tick={{ fill: 'var(--tx-3)', fontSize: 11 }} tickLine={false} axisLine={false}
-                  tickFormatter={v => fmtShares(v)} width={55} />
-                <YAxis yAxisId="price" orientation="right" tick={{ fill: 'var(--tx-3)', fontSize: 11 }}
+                  tickFormatter={v => fmtShares(v)} width={isMobile ? 42 : 55} />
+                {!isMobile && <YAxis yAxisId="price" orientation="right" tick={{ fill: 'var(--tx-3)', fontSize: 11 }}
                   tickLine={false} axisLine={false}
-                  tickFormatter={v => v.toLocaleString() + '원'} width={70} />
+                  tickFormatter={v => v.toLocaleString() + '원'} width={70} />}
                 <Tooltip
                   contentStyle={{
                     background: 'var(--bg-2)', border: '1px solid #e5e7eb', borderRadius: 12,
@@ -180,8 +182,8 @@ export default function InvestorFlowResult({ result }) {
                 <Area yAxisId="cum" type="monotone" dataKey="indCum" stroke={COLORS.individual}
                   fill={COLORS.individual} fillOpacity={0.05} strokeWidth={1.5} dot={false}
                   strokeDasharray="4 4" />
-                <Line yAxisId="price" type="monotone" dataKey="price" stroke={COLORS.price}
-                  strokeWidth={2.5} dot={false} />
+                {!isMobile && <Line yAxisId="price" type="monotone" dataKey="price" stroke={COLORS.price}
+                  strokeWidth={2.5} dot={false} />}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
