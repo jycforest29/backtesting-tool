@@ -924,7 +924,7 @@ button:disabled {
   align-items: center;
 }
 
-.weight-input {
+.weight-input-wrapper .weight-input {
   width: 100%;
   text-align: right;
   padding-right: 28px;
